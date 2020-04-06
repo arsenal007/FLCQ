@@ -180,7 +180,7 @@ uint8_t uart_id;
 uint8_t status;
 
 //void __interrupt() isr( void )
-void isr(void) __interrupt 1 {
+void isr(void) __interrupt 0 {
   // If UART Rx Interrupt
   if ( RCIF )
   {
