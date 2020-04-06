@@ -1,0 +1,65 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	  "settings": {
+      "path": "C:\\LLVM\\bin",
+    "ClangFormat": {
+      "format_on_save": true
+    },
+      "binary": "clang-format.exe",
+  "style": "File"
+  },
+  "build_systems": [
+    {
+      "name": "htool",
+      "file_regex": "^(...*?):([0-9]*):?([0-9]*)",
+      "shell": true,
+      "working_dir": "$project_path\\build\\HTOOL",
+      "path": "C:\\msys64\\mingw64\\bin;C:\\msys64\\usr\\bin;",
+      "variants": [
+        {
+          "name": "cmake clean",
+          "cmd": [
+            "rm",
+            "CMakeCache.txt",
+            "-fR"
+          ]
+        },
+        {
+          "name": "cmake",
+          "cmd": [
+            "cmake",
+            "-DCMAKE_BUILD_TYPE:STRING=Debug",
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON",
+            "--warn-unitialized",
+            "--warn-unused",
+            "-G",
+            "MSYS Makefiles",
+            "$project_path\\source"
+          ]
+        },
+        {
+          "name": "clean",
+          "cmd": [
+            "make",
+            "clean"
+          ]
+        },
+        {
+          "name": "make",
+          "cmd": [
+            "make",
+            "2>&1",
+            "|",
+            "tee",
+            "out.log"
+          ]
+        }
+      ]
+    }
+  ]
+}
