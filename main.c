@@ -15,6 +15,36 @@
 #define ti TRISA1 = 1  //sensor is output
 #define to TRISA1 = 0  //sensor is input
 
+void led_yellow_enable( void )
+{
+  RB3 = 1;
+}
+
+void led_yellow_disable( void )
+{
+  RB3 = 0;
+}
+
+void led_green_enable( void )
+{
+  RB4 = 1;
+}
+
+void led_green_disable( void )
+{
+  RB4 = 0;
+}
+
+void led_blue_enable( void )
+{
+  RB5 = 1;
+}
+
+void led_blue_disable( void )
+{
+  RB5 = 0;
+}
+
 void cmnd_w( unsigned char cmnd )
 {  //send command to temperature sensor
   unsigned char i;
@@ -139,17 +169,18 @@ void initTimer0( void )
 void initTimer1( void )
 {
   // Timer1 Registers:
-  // Prescaler=1:1; TMR1 Preset=65036; Freq=10,000.00Hz; Period=100,000 ns
-  //T1CON.T1CKPS1 = 0;  // bits 5-4  Prescaler Rate Select bits
-
-  //T1CON.T1CKPS0 = 0 T1CON.T1OSCEN = 1;  // bit 3 Timer1 Oscillator Enable Control: bit 1=on
-  //T1CON.T1SYNC =
-  //    1;  // bit 2 Timer1 External Clock Input Synchronization Control bit: 1=Do not synchronize external clock input
-  //T1CON.TMR1CS =
-  //   0;  // bit 1 Timer1 Clock Source Select bit: 0=Internal clock (FOSC/4) / 1 = External clock from pin T1CKI (on the rising edge)
-  //T1CON.TMR1ON = 1;  // bit 0 enables timer
-  //TMR1H = 0xFE;      // preset for timer1 MSB register
-  //TMR1L = 0x0C;      // preset for timer1 LSB register
+  // Prescaler=1:8; TMR1 Preset=59286; Freq=100.00Hz; Period=10,000,000 ns
+  T1CKPS1 = 1;  // bits 5-4  Prescaler Rate Select bits
+  T1CKPS0 = 1;
+  T1OSCEN = 0;  // bit 3 Timer1 Oscillator Enable Control: bit 1=on
+  NOT_T1SYNC =
+      1;  // bit 2 Timer1 External Clock Input Synchronization Control bit: 1=Do not synchronize external clock input
+  TMR1CS =
+      0;  // bit 1 Timer1 Clock Source Select bit: 0=Internal clock (FOSC/4) / 1 = External clock from pin T1CKI (on the rising edge)
+  TMR1IE = 1;
+  TMR1ON = 1;    // bit 0 enables timer
+  TMR1H = 0xE7;  // preset for timer1 MSB register
+  TMR1L = 0x96;  // preset for timer1 LSB register
 }
 
 void SendByteSerially( unsigned char Byte )  // Writes a character to the serial port
@@ -175,29 +206,54 @@ unsigned char ReceiveByteSerially( void )  // Reads a character from the serial 
 
 #define UART_PACKET_SIZE 16u
 #define RX_FULL 7
-uint8_t uart_rx[ UART_PACKET_SIZE ];
+uint32_t end;
+uint8_t uart[ UART_PACKET_SIZE ];
 uint8_t uart_id;
 uint8_t status;
+uint16_t timer1;
+uint8_t lauflicht;
 
-//void __interrupt() isr( void )
-void isr(void) __interrupt 0 {
-  // If UART Rx Interrupt
-  if ( RCIF )
+void timer1_int( void )
+{
+  if ( timer1 == 100u )
   {
-    uint8_t rx = ReceiveByteSerially();
-    if ( rx == 0xBE )
+    if ( lauflicht )
     {
-      uart_id = 0;
-    }
-    else if ( rx == 0xFE )
-    {
-      status |= ( 1 << RX_FULL );
+      lauflicht = 0;
+      led_yellow_enable();
     }
     else
     {
-      uart_rx[ uart_id ] = rx;
+      lauflicht = 1;
+      led_yellow_disable();
+    }
+    timer1 = 0;
+  }
+  else
+  {
+    timer1++;
+  }
+}
+
+//void __interrupt() isr( void )
+void isr( void ) __interrupt 0
+{
+  // If UART Rx Interrupt
+  if ( RCIF )
+  {
+    if ( ( ( status >> RX_FULL ) & 1U ) == 0 )
+    {
+      uart[ uart_id ] = ReceiveByteSerially();
       uart_id++;
       uart_id &= 0b00001111;
+      if ( ( 4 <= uart_id ) && ( uart[ uart_id - 1 ] == 0xFF ) && ( uart[ uart_id - 2 ] == 0xFF ) )
+      {
+        status |= ( 1 << RX_FULL );
+      }
+    }
+    else
+    {
+      ReceiveByteSerially();
     }
   }
   else if ( TMR0IF )
@@ -206,22 +262,19 @@ void isr(void) __interrupt 0 {
     TMR0 = 0;
     timer0++;
   }
+  else if ( TMR1IF )
+  {
+    TMR1IF = 0;
+    TMR1H = 0xE7;  // preset for timer1 MSB register
+    TMR1L = 0x96;  // preset for timer1 LSB register
+    timer1_int();
+  }
 }
 
 void SendStringSerially( const unsigned char* st )
 {
   while ( *st )
     SendByteSerially( *st++ );
-}
-
-void blue_enable( void )
-{
-  RB5 = 1;
-}
-
-void blue_disable( void )
-{
-  RB5 = 0;
 }
 
 uint8_t eeprom_address;
@@ -245,44 +298,51 @@ void write_eeprom( char address, char data )
     ;
 }
 
-void answer( const unsigned char* st )
+void answer( uint8_t N )
 {
-  while ( *st != 0xFE )
-    SendByteSerially( *st++ );
-  //0xFE
-  SendByteSerially( *st );
+  uint8_t i;
+  for ( i = 0; i < N; i++ )
+    SendByteSerially( uart[ i ] );
 }
 
-void send_eeprom_value_to_host( uint8_t address )
+void send_eeprom_value_to_host( void )
 {
-  uint8_t p[] = { 0xBE, 0x04, 0x00, 0x00, 0xFE };
-  p[ 2 ] = address;
-  p[ 3 ] = read_eeprom( address );
-  answer( p );
+  uart[ 0 ] = 0x04;
+  uart[ 2 ] = read_eeprom( uart[ 1 ] );
+  uart[ 3 ] = 0xFF;
+  uart[ 4 ] = 0xFF;
+  answer( 5 );
 }
 
 void uart_rx_packet( void )
 {
-  switch ( uart_rx[ 0u ] )
+  switch ( uart[ 0 ] )
   {
     // write eeprom
     case ( 0x03 ):
     {
-      write_eeprom( uart_rx[ 1u ], uart_rx[ 2u ] );
-      send_eeprom_value_to_host( uart_rx[ 1u ] );
+      led_yellow_enable();
+      uart[ 1 ] &= 0x7F;  //128 max
+      if ( uart_id == 5 )
+      {
+        write_eeprom( uart[ 1 ], uart[ 2 ] );
+        send_eeprom_value_to_host();
+      }
       break;
     }
     // read eeprom
     case ( 0x05 ):
     {
-      send_eeprom_value_to_host( uart_rx[ 1u ] );
+      send_eeprom_value_to_host();
       break;
     }
   }
-  status &= ( 1 << RX_FULL );
+  led_blue_enable();
+  status &= ~( 1 << RX_FULL );
   uint8_t i;
   for ( i = 0; i < UART_PACKET_SIZE; i++ )
-    uart_rx[ i ] = 0;
+    uart[ i ] = 0;
+  uart_id = 0;
 }
 
 void main( void )
@@ -296,7 +356,7 @@ void main( void )
   RB5 = 0;
 
   InitUART();  // Initialize UART
-
+  initTimer1();
   //sensor_rst();     //sensor init
   //cmnd_w( 0xCC );   //skip ROM command
   //cmnd_w( 0xBE );   //read pad command
@@ -307,32 +367,16 @@ void main( void )
   //cmnd_w( 0xCC );  //skip ROM command
   //cmnd_w( 0x44 );  //start convertion command
 
-  SendStringSerially( "FLCQ ver. 1.0\n" );  // Send string on UART
+  //SendStringSerially( "FLCQ ver. 1.0\n" );  // Send string on UART
 
   GIE = 1;   // Enable global interrupts
   PEIE = 1;  // Enable Peripheral Interrupts
-
+  led_yellow_disable();
+  led_green_disable();
+  led_blue_disable();
   while ( 1 )
   {
-    lauflicht <<= 1;
-
     if ( ( status >> RX_FULL ) & 1U ) uart_rx_packet();
-
-    if ( lauflicht )
-    {
-      lauflicht = 0;
-      RB3 = 1;
-      RB4 = 1;
-      blue_enable();
-    }
-    else
-    {
-      lauflicht = 1;
-      RB3 = 0;
-      RB4 = 0;
-      blue_disable();
-    }
-
     //__delay_ms( 1000 );
   }
 }
