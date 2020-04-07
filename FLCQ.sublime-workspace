@@ -51,9 +51,66 @@
 			"file": "main.c",
 			"settings":
 			{
-				"buffer_size": 0,
+				"buffer_size": 7264,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "main.lst",
+			"settings":
+			{
+				"buffer_size": 117071,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "eeprom.lst",
+			"settings":
+			{
+				"buffer_size": 21886,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "main.asm",
+			"settings":
+			{
+				"buffer_size": 29788,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "eeprom.asm",
+			"settings":
+			{
+				"buffer_size": 551,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"contents": "list P=16F628A\n#include <P16F628A.inc>      ; processor specific definitions\n#include <timer0.inc>\n          code\nSetPrescaler:                          ; copy W into OPTION register, avoid watchdog trouble\n          clrwdt                       ; recommended by Microchip (\"switching prescaler assignment\") \n          errorlevel -302              ; Turn off banking message for the next few instructions..\n          bsf   STATUS, RP0            ;! setting RP0 enables access to OPTION reg\n                                       ; option register is in bank1. i know. thanks for the warning.\n          movwf OPTION_REG             ;! ex: \"option\" command (yucc)\n          bcf   STATUS, RP0            ;! clearing RP0 for normal register access\n          errorlevel +302              ; Enable banking message again\n          retlw 0\n\n\nPrescalerOff:                          ; turn the prescaler for TMR0 \"off\" \n                                       ; (actually done by assigning the prescaler to the watchdog timer)\n          clrwdt                       ; clear watchdog timer\n          clrf  TMR0                   ; clear timer 0 AND PRESCALER(!)\n          errorlevel -302              ; Turn off banking message for the next few instructions..\n          bsf   STATUS, RP0            ;! setting RP0 enables access to OPTION reg\n                                       ; option register is in bank1. i know. thanks for the warning.\n          movlw b'00100111'            ;! recommended by Microchip when\n                                       ;! changing prescaler assignment from TMR0 to WDT\n          movwf OPTION_REG             ;! ex: \"option\" command (yucc)\n          clrwdt                       ;! clear watchdog again\n          movlw b'00101111'            ;! bit 3 set means PS assigned to WDT now\n          movwf OPTION_REG             ;! ex: \"option\" command (yucc)\n          bcf   STATUS, RP0            ;! clearing RP0 for normal register access\n          errorlevel +302              ; Enable banking message again\n          retlw 0\n          end",
+			"file": "timer0.asm",
+			"file_size": 2092,
+			"file_write_time": 132307102510568432,
+			"settings":
+			{
+				"buffer_size": 2061,
+				"encoding": "UTF-8",
+				"line_ending": "Windows",
+				"name": ";-------------------------------------------------"
+			}
+		},
+		{
+			"file": "timer0.inc",
+			"settings":
+			{
+				"buffer_size": 1919,
+				"encoding": "UTF-8",
+				"line_ending": "Windows",
+				"name": "PSC_DIV_BY_2   equ  b'00100000'   ; let prescaler"
 			}
 		},
 		{
@@ -68,9 +125,26 @@
 			"file": "FLCQ.sublime-project",
 			"settings":
 			{
-				"buffer_size": 1280,
+				"buffer_size": 736,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "counter-0.4.asm",
+			"settings":
+			{
+				"buffer_size": 115691,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "Makefile",
+			"settings":
+			{
+				"buffer_size": 862,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
 			}
 		},
 		{
@@ -80,19 +154,31 @@
 				"buffer_size": 52,
 				"line_ending": "Unix"
 			}
-		},
-		{
-			"file": "FLCQ.sublime-workspace",
-			"settings":
-			{
-				"buffer_size": 11361,
-				"line_ending": "Unix"
-			}
 		}
 	],
-	"build_system": "",
+	"build_system": "MAKEFILES",
 	"build_system_choices":
 	[
+		[
+			[
+				[
+					"MAKEFILES",
+					""
+				],
+				[
+					"MAKEFILES",
+					"make"
+				],
+				[
+					"MAKEFILES",
+					"clean"
+				]
+			],
+			[
+				"MAKEFILES",
+				"make"
+			]
+		],
 		[
 			[
 				[
@@ -366,7 +452,7 @@
 			]
 		]
 	],
-	"build_varint": "",
+	"build_varint": "make",
 	"command_palette":
 	{
 		"height": 0.0,
@@ -434,6 +520,12 @@
 	],
 	"file_history":
 	[
+		"/C/Users/vkuzmenko/FLCQ/eeprom.lst",
+		"/C/Users/vkuzmenko/FLCQ/.cod",
+		"/C/Users/vkuzmenko/FLCQ/.cof",
+		"/C/Users/vkuzmenko/FLCQ/FLCQ.sublime-workspace",
+		"/C/Users/vkuzmenko/FLCQ/Makefile",
+		"/C/Users/vkuzmenko/FLCQ/counter-0.4.asm",
 		"/C/Users/vkuzmenko/FLCQ/FLCQ.code-workspace",
 		"/C/Users/vkuzmenko/AppData/Roaming/Sublime Text 3/Packages/User/SublimeGDB.sublime-settings",
 		"/C/Users/vkuzmenko/AppData/Roaming/Sublime Text 3/Packages/SublimeGDB/SublimeGDB.sublime-settings",
@@ -476,7 +568,7 @@
 	],
 	"find":
 	{
-		"height": 24.0
+		"height": 39.0
 	},
 	"find_in_files":
 	{
@@ -490,6 +582,12 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"_initTimer1",
+			"Timer1",
+			"count_pulses",
+			"SetPrescaler",
+			"_read_",
+			"_blue_disable",
 			";\",\n"
 		],
 		"highlight": true,
@@ -517,7 +615,37 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 0,
+						"buffer_size": 7264,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								7112,
+								7112
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C Improved/C Improved.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 5261.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "main.lst",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 117071,
 						"regions":
 						{
 						},
@@ -530,19 +658,168 @@
 						],
 						"settings":
 						{
-							"syntax": "Packages/C Improved/C Improved.tmLanguage",
+							"syntax": "Packages/Text/Plain text.tmLanguage",
 							"tab_size": 2,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1440.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
-					"buffer": 1,
+					"buffer": 2,
+					"file": "eeprom.lst",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 21886,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1409,
+								1409
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "main.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 29788,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								19806,
+								19817
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 13926.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "eeprom.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 551,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								422,
+								422
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "timer0.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2061,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								109,
+								109
+							]
+						],
+						"settings":
+						{
+							"auto_name": ";-------------------------------------------------",
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_size": 5,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "timer0.inc",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1919,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1851,
+								1851
+							]
+						],
+						"settings":
+						{
+							"auto_name": "PSC_DIV_BY_2   equ  b'00100000'   ; let prescaler",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 7,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
 					"file": "FLCQ.code-workspace",
 					"semi_transient": false,
 					"settings":
@@ -566,24 +843,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 11,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
+					"buffer": 8,
 					"file": "FLCQ.sublime-project",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 1280,
+						"buffer_size": 736,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								202,
-								202
+								436,
+								436
 							]
 						],
 						"settings":
@@ -596,11 +873,69 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 9,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 9,
+					"file": "counter-0.4.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 115691,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								63265,
+								63265
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 19311.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 10,
+					"file": "Makefile",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 862,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								862,
+								862
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Makefile/Makefile.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 8,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
 					"file": "/C/Users/vkuzmenko/AppData/Roaming/Sublime Text 3/Packages/User/clang_format.sublime-settings",
 					"semi_transient": false,
 					"settings":
@@ -624,36 +959,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "FLCQ.sublime-workspace",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 11361,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
+					"stack_index": 10,
 					"type": "text"
 				}
 			]
@@ -692,7 +998,7 @@
 	"menu_visible": true,
 	"output.exec":
 	{
-		"height": 401.0
+		"height": 259.0
 	},
 	"output.find_results":
 	{
@@ -702,7 +1008,7 @@
 	{
 		"height": 314.0
 	},
-	"pinned_build_system": "SALVAGNINI_LPM",
+	"pinned_build_system": "MAKEFILES",
 	"project": "FLCQ.sublime-project",
 	"replace":
 	{
