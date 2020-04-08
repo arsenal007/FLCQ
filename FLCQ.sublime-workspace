@@ -57,24 +57,10 @@
 			}
 		},
 		{
-			"file": "main.lst",
-			"settings":
-			{
-				"buffer_size": 117071,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "eeprom.lst",
-			"settings":
-			{
-				"buffer_size": 21886,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
+			"contents": ";--------------------------------------------------------\n; File Created by SDCC : free open source ANSI-C Compiler\n; Version 4.0.0 #11528 (MINGW64)\n;--------------------------------------------------------\n; PIC port for the 14-bit core\n;--------------------------------------------------------\n;\t.file\t\"main.c\"\n\tlist\tp=16f628a\n\tradix dec\n\tinclude \"p16f628a.inc\"\n;--------------------------------------------------------\n; external declarations\n;--------------------------------------------------------\n\textern\t_read_eeprom\n\textern\t_EECON2\n\textern\t_EEADR\n\textern\t_EEDATA\n\textern\t_SPBRG\n\textern\t_RCREG\n\textern\t_TXREG\n\textern\t_TMR1H\n\textern\t_TMR1L\n\textern\t_TMR0\n\textern\t_EECON1bits\n\textern\t_TXSTAbits\n\textern\t_PIE1bits\n\textern\t_TRISBbits\n\textern\t_TRISAbits\n\textern\t_OPTION_REGbits\n\textern\t_RCSTAbits\n\textern\t_T1CONbits\n\textern\t_PIR1bits\n\textern\t_INTCONbits\n\textern\t_PORTBbits\n\textern\t_PORTAbits\n\textern\t__gptrget1\n\textern\t__sdcc_gsinit_startup\n;--------------------------------------------------------\n; global declarations\n;--------------------------------------------------------\n\tglobal\t_main\n\tglobal\t_uart_rx_packet\n\tglobal\t_send_eeprom_value_to_host\n\tglobal\t_answer\n\tglobal\t_write_eeprom\n\tglobal\t_SendStringSerially\n\tglobal\t_isr\n\tglobal\t_timer1_int\n\tglobal\t_ReceiveByteSerially\n\tglobal\t_SendByteSerially\n\tglobal\t_initTimer1\n\tglobal\t_initTimer0\n\tglobal\t_InitUART\n\tglobal\t_reply\n\tglobal\t_sensor_rst\n\tglobal\t_cmnd_w\n\tglobal\t_led_blue_disable\n\tglobal\t_led_blue_enable\n\tglobal\t_led_green_disable\n\tglobal\t_led_green_enable\n\tglobal\t_led_yellow_disable\n\tglobal\t_led_yellow_enable\n\tglobal\t_tempH\n\tglobal\t_tempL\n\tglobal\t_eeprom_data\n\tglobal\t_eeprom_address\n\tglobal\t_lauflicht\n\tglobal\t_timer1\n\tglobal\t_status\n\tglobal\t_uart_id\n\tglobal\t_uart\n\tglobal\t_end\n\tglobal\t_prescaler_timer0\n\tglobal\t_timer0\n\n\tglobal PSAVE\n\tglobal SSAVE\n\tglobal WSAVE\n\tglobal STK12\n\tglobal STK11\n\tglobal STK10\n\tglobal STK09\n\tglobal STK08\n\tglobal STK07\n\tglobal STK06\n\tglobal STK05\n\tglobal STK04\n\tglobal STK03\n\tglobal STK02\n\tglobal STK01\n\tglobal STK00\n\nsharebank udata_ovr 0x0070\nPSAVE\tres 1\nSSAVE\tres 1\nWSAVE\tres 1\nSTK12\tres 1\nSTK11\tres 1\nSTK10\tres 1\nSTK09\tres 1\nSTK08\tres 1\nSTK07\tres 1\nSTK06\tres 1\nSTK05\tres 1\nSTK04\tres 1\nSTK03\tres 1\nSTK02\tres 1\nSTK01\tres 1\nSTK00\tres 1\n\n;--------------------------------------------------------\n; global definitions\n;--------------------------------------------------------\nUD_main_0\tudata\n_end\tres\t4\n\nUD_main_1\tudata\n_uart\tres\t16\n\nUD_main_2\tudata\n_uart_id\tres\t1\n\nUD_main_3\tudata\n_status\tres\t1\n\nUD_main_4\tudata\n_timer1\tres\t2\n\nUD_main_5\tudata\n_lauflicht\tres\t1\n\nUD_main_6\tudata\n_eeprom_address\tres\t1\n\nUD_main_7\tudata\n_eeprom_data\tres\t1\n\nUD_main_8\tudata\n_tempL\tres\t1\n\nUD_main_9\tudata\n_tempH\tres\t1\n\n;--------------------------------------------------------\n; absolute symbol definitions\n;--------------------------------------------------------\n;--------------------------------------------------------\n; compiler-defined variables\n;--------------------------------------------------------\nUDL_main_0\tudata\nr0x102F\tres\t1\nr0x1030\tres\t1\nr0x1032\tres\t1\nr0x1031\tres\t1\nr0x102E\tres\t1\nr0x102A\tres\t1\nr0x102B\tres\t1\nr0x102C\tres\t1\nr0x102D\tres\t1\nr0x1029\tres\t1\nr0x1018\tres\t1\nr0x1027\tres\t1\nr0x1028\tres\t1\nr0x1035\tres\t1\nr0x1036\tres\t1\nr0x1037\tres\t1\nr0x1025\tres\t1\nr0x1024\tres\t1\nr0x1023\tres\t1\nr0x1026\tres\t1\nr0x1019\tres\t1\nr0x101A\tres\t1\nr0x101B\tres\t1\nr0x101C\tres\t1\nr0x101E\tres\t1\nr0x101F\tres\t1\nr0x1020\tres\t1\nr0x1021\tres\t1\nr0x1022\tres\t1\n___sdcc_saved_fsr\tres\t1\n;--------------------------------------------------------\n; initialized data\n;--------------------------------------------------------\n\nIDD_main_0\tidata\n_timer0\n\tdb\t0x00\t; 0\n\n\nIDD_main_1\tidata\n_prescaler_timer0\n\tdb\t0x00\t; 0\n\n;--------------------------------------------------------\n; initialized absolute data\n;--------------------------------------------------------\n;--------------------------------------------------------\n; overlayable items in internal ram \n;--------------------------------------------------------\n;\tudata_ovr\n;--------------------------------------------------------\n; reset vector \n;--------------------------------------------------------\nSTARTUP\tcode 0x0000\n\tnop\n\tpagesel __sdcc_gsinit_startup\n\tgoto\t__sdcc_gsinit_startup\n;--------------------------------------------------------\n; interrupt and initialization code\n;--------------------------------------------------------\nc_interrupt\tcode\t0x0004\n__sdcc_interrupt:\n;***\n;  pBlock Stats: dbName = I\n;***\n;functions called:\n;   _ReceiveByteSerially\n;   _ReceiveByteSerially\n;   _timer1_int\n;   _ReceiveByteSerially\n;   _ReceiveByteSerially\n;   _timer1_int\n;4 compiler assigned registers:\n;   r0x1035\n;   r0x1036\n;   r0x1037\n;   r0x1038\n;; Starting pCode block\n_isr:\n; 0 exit points\n;\t.line\t239; \"main.c\"\tvoid isr( void ) __interrupt 0\n\tMOVWF\tWSAVE\n\tSWAPF\tSTATUS,W\n\tCLRF\tSTATUS\n\tMOVWF\tSSAVE\n\tMOVF\tPCLATH,W\n\tCLRF\tPCLATH\n\tMOVWF\tPSAVE\n\tMOVF\tFSR,W\n\tBANKSEL\t___sdcc_saved_fsr\n\tMOVWF\t___sdcc_saved_fsr\n;\t.line\t242; \"main.c\"\tif ( RCIF )\n\tBANKSEL\t_PIR1bits\n\tBTFSS\t_PIR1bits,5\n\tGOTO\t_00245_DS_\n;\t.line\t244; \"main.c\"\tif ( ( ( status >> RX_FULL ) & 1U ) == 0 )\n\tBANKSEL\t_status\n\tMOVF\t_status,W\n\tANDLW\t0x80\n\tBTFSS\tSTATUS,2\n\tMOVLW\t0x01\n\tBANKSEL\tr0x1035\n\tMOVWF\tr0x1035\n\tMOVF\tr0x1035,W\n\tBTFSS\tSTATUS,2\n\tGOTO\t_00237_DS_\n;\t.line\t246; \"main.c\"\tuart[ uart_id ] = ReceiveByteSerially();\n\tBANKSEL\t_uart_id\n\tMOVF\t_uart_id,W\n\tADDLW\t(_uart + 0)\n\tBANKSEL\tr0x1035\n\tMOVWF\tr0x1035\n\tMOVLW\thigh (_uart + 0)\n\tBTFSC\tSTATUS,0\n\tADDLW\t0x01\n\tMOVWF\tr0x1036\n\tPAGESEL\t_ReceiveByteSerially\n\tCALL\t_ReceiveByteSerially\n\tPAGESEL\t$\n\tBANKSEL\tr0x1037\n\tMOVWF\tr0x1037\n\tMOVF\tr0x1035,W\n\tBANKSEL\tFSR\n\tMOVWF\tFSR\n\tBCF\tSTATUS,7\n\tBANKSEL\tr0x1036\n\tBTFSC\tr0x1036,0\n\tBSF\tSTATUS,7\n\tMOVF\tr0x1037,W\n\tBANKSEL\tINDF\n\tMOVWF\tINDF\n;\t.line\t247; \"main.c\"\tuart_id++;\n\tBANKSEL\t_uart_id\n\tINCF\t_uart_id,F\n;\t.line\t248; \"main.c\"\tuart_id &= 0b00001111;\n\tMOVLW\t0x0f\n\tANDWF\t_uart_id,F\n;;unsigned compare: left < lit(0x4=4), size=1\n;\t.line\t249; \"main.c\"\tif ( ( 4 <= uart_id ) && ( uart[ uart_id - 1 ] == 0xFF ) && ( uart[ uart_id - 2 ] == 0xFF ) )\n\tMOVLW\t0x04\n\tSUBWF\t_uart_id,W\n\tBTFSS\tSTATUS,0\n\tGOTO\t_00247_DS_\n;;genSkipc:3307: created from rifx:00000000047A5780\n\tMOVF\t_uart_id,W\n\tBANKSEL\tr0x1035\n\tMOVWF\tr0x1035\n\tDECF\tr0x1035,W\n\tMOVWF\tr0x1036\n\tCLRF\tr0x1037\n\tMOVF\tr0x1036,W\n\tADDLW\t(_uart + 0)\n\tMOVWF\tr0x1036\n\tMOVLW\t0x00\n\tBTFSC\tSTATUS,0\n\tINCFSZ\tr0x1037,W\n\tADDLW\thigh (_uart + 0)\n\tMOVWF\tr0x1037\n\tMOVF\tr0x1036,W\n\tBANKSEL\tFSR\n\tMOVWF\tFSR\n\tBCF\tSTATUS,7\n\tBANKSEL\tr0x1037\n\tBTFSC\tr0x1037,0\n\tBSF\tSTATUS,7\n\tBANKSEL\tINDF\n\tMOVF\tINDF,W\n;;1\tMOVWF\tr0x1038\n\tXORLW\t0xff\n\tBTFSS\tSTATUS,2\n\tGOTO\t_00247_DS_\n\tMOVLW\t0xfe\n\tBANKSEL\tr0x1035\n\tADDWF\tr0x1035,F\n\tCLRF\tr0x1036\n\tMOVF\tr0x1035,W\n\tADDLW\t(_uart + 0)\n\tMOVWF\tr0x1035\n\tMOVLW\t0x00\n\tBTFSC\tSTATUS,0\n\tINCFSZ\tr0x1036,W\n\tADDLW\thigh (_uart + 0)\n\tMOVWF\tr0x1036\n\tMOVF\tr0x1035,W\n\tBANKSEL\tFSR\n\tMOVWF\tFSR\n\tBCF\tSTATUS,7\n\tBANKSEL\tr0x1036\n\tBTFSC\tr0x1036,0\n\tBSF\tSTATUS,7\n\tBANKSEL\tINDF\n\tMOVF\tINDF,W\n\tBANKSEL\tr0x1037\n\tMOVWF\tr0x1037\n\tXORLW\t0xff\n\tBTFSS\tSTATUS,2\n\tGOTO\t_00247_DS_\n;\t.line\t251; \"main.c\"\tstatus |= ( 1 << RX_FULL );\n\tBANKSEL\t_status\n\tBSF\t_status,7\n\tGOTO\t_00247_DS_\n_00237_DS_:\n;\t.line\t256; \"main.c\"\tReceiveByteSerially();\n\tPAGESEL\t_ReceiveByteSerially\n\tCALL\t_ReceiveByteSerially\n\tPAGESEL\t$\n\tGOTO\t_00247_DS_\n_00245_DS_:\n;\t.line\t259; \"main.c\"\telse if ( TMR0IF )\n\tBANKSEL\t_INTCONbits\n\tBTFSS\t_INTCONbits,2\n\tGOTO\t_00242_DS_\n;\t.line\t261; \"main.c\"\tTMR0IF = 0;\n\tBCF\t_INTCONbits,2\n;\t.line\t262; \"main.c\"\tTMR0 = 0;\n\tCLRF\t_TMR0\n;\t.line\t263; \"main.c\"\ttimer0++;\n\tBANKSEL\t_timer0\n\tINCF\t_timer0,F\n\tGOTO\t_00247_DS_\n_00242_DS_:\n;\t.line\t265; \"main.c\"\telse if ( TMR1IF )\n\tBANKSEL\t_PIR1bits\n\tBTFSS\t_PIR1bits,0\n\tGOTO\t_00247_DS_\n;\t.line\t267; \"main.c\"\tTMR1IF = 0;\n\tBCF\t_PIR1bits,0\n;\t.line\t268; \"main.c\"\tTMR1H = 0xE7;  // preset for timer1 MSB register\n\tMOVLW\t0xe7\n\tMOVWF\t_TMR1H\n;\t.line\t269; \"main.c\"\tTMR1L = 0x96;  // preset for timer1 LSB register\n\tMOVLW\t0x96\n\tMOVWF\t_TMR1L\n;\t.line\t270; \"main.c\"\ttimer1_int();\n\tPAGESEL\t_timer1_int\n\tCALL\t_timer1_int\n\tPAGESEL\t$\n_00247_DS_:\n;\t.line\t272; \"main.c\"\t}\n\tBANKSEL\t___sdcc_saved_fsr\n\tMOVF\t___sdcc_saved_fsr,W\n\tBANKSEL\tFSR\n\tMOVWF\tFSR\n\tMOVF\tPSAVE,W\n\tMOVWF\tPCLATH\n\tCLRF\tSTATUS\n\tSWAPF\tSSAVE,W\n\tMOVWF\tSTATUS\n\tSWAPF\tWSAVE,F\n\tSWAPF\tWSAVE,W\nEND_OF_INTERRUPT:\n\tRETFIE\t\n\n;--------------------------------------------------------\n; code\n;--------------------------------------------------------\ncode_main\tcode\n;***\n;  pBlock Stats: dbName = M\n;***\n;has an exit\n;functions called:\n;   _InitUART\n;   _initTimer1\n;   _led_yellow_disable\n;   _led_green_disable\n;   _led_blue_disable\n;   _uart_rx_packet\n;   _InitUART\n;   _initTimer1\n;   _led_yellow_disable\n;   _led_green_disable\n;   _led_blue_disable\n;   _uart_rx_packet\n;1 compiler assigned register :\n;   r0x1022\n;; Starting pCode block\nS_main__main\tcode\n_main:\n; 2 exit points\n;\t.line\t351; \"main.c\"\tTRISB3 = 0;\n\tBANKSEL\t_TRISBbits\n\tBCF\t_TRISBbits,3\n;\t.line\t352; \"main.c\"\tTRISB4 = 0;\n\tBCF\t_TRISBbits,4\n;\t.line\t353; \"main.c\"\tTRISB5 = 0;\n\tBCF\t_TRISBbits,5\n;\t.line\t354; \"main.c\"\tRB3 = 0;\n\tBANKSEL\t_PORTBbits\n\tBCF\t_PORTBbits,3\n;\t.line\t355; \"main.c\"\tRB4 = 0;\n\tBCF\t_PORTBbits,4\n;\t.line\t356; \"main.c\"\tRB5 = 0;\n\tBCF\t_PORTBbits,5\n;\t.line\t358; \"main.c\"\tInitUART();  // Initialize UART\n\tPAGESEL\t_InitUART\n\tCALL\t_InitUART\n\tPAGESEL\t$\n;\t.line\t359; \"main.c\"\tinitTimer1();\n\tPAGESEL\t_initTimer1\n\tCALL\t_initTimer1\n\tPAGESEL\t$\n;\t.line\t372; \"main.c\"\tGIE = 1;   // Enable global interrupts\n\tBANKSEL\t_INTCONbits\n\tBSF\t_INTCONbits,7\n;\t.line\t373; \"main.c\"\tPEIE = 1;  // Enable Peripheral Interrupts\n\tBSF\t_INTCONbits,6\n;\t.line\t374; \"main.c\"\tled_yellow_disable();\n\tPAGESEL\t_led_yellow_disable\n\tCALL\t_led_yellow_disable\n\tPAGESEL\t$\n;\t.line\t375; \"main.c\"\tled_green_disable();\n\tPAGESEL\t_led_green_disable\n\tCALL\t_led_green_disable\n\tPAGESEL\t$\n;\t.line\t376; \"main.c\"\tled_blue_disable();\n\tPAGESEL\t_led_blue_disable\n\tCALL\t_led_blue_disable\n\tPAGESEL\t$\n_00318_DS_:\n;\t.line\t379; \"main.c\"\tif ( ( status >> RX_FULL ) & 1U ) uart_rx_packet();\n\tBANKSEL\t_status\n\tMOVF\t_status,W\n\tANDLW\t0x80\n\tBTFSS\tSTATUS,2\n\tMOVLW\t0x01\n\tBANKSEL\tr0x1022\n\tMOVWF\tr0x1022\n\tMOVF\tr0x1022,W\n\tBTFSC\tSTATUS,2\n\tGOTO\t_00318_DS_\n\tPAGESEL\t_uart_rx_packet\n\tCALL\t_uart_rx_packet\n\tPAGESEL\t$\n\tGOTO\t_00318_DS_\n;\t.line\t382; \"main.c\"\t}\n\tRETURN\t\n; exit point of _main\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;functions called:\n;   _led_yellow_enable\n;   _write_eeprom\n;   _send_eeprom_value_to_host\n;   _send_eeprom_value_to_host\n;   _led_blue_enable\n;   _led_yellow_enable\n;   _write_eeprom\n;   _send_eeprom_value_to_host\n;   _send_eeprom_value_to_host\n;   _led_blue_enable\n;4 compiler assigned registers:\n;   r0x101F\n;   r0x1020\n;   STK00\n;   r0x1021\n;; Starting pCode block\nS_main__uart_rx_packet\tcode\n_uart_rx_packet:\n; 2 exit points\n;\t.line\t319; \"main.c\"\tswitch ( uart[ 0 ] )\n\tBANKSEL\t_uart\n\tMOVF\t(_uart + 0),W\n\tBANKSEL\tr0x101F\n\tMOVWF\tr0x101F\n\tXORLW\t0x03\n\tBTFSC\tSTATUS,2\n\tGOTO\t_00278_DS_\n\tMOVF\tr0x101F,W\n\tXORLW\t0x05\n\tBTFSC\tSTATUS,2\n\tGOTO\t_00281_DS_\n\tGOTO\t_00282_DS_\n_00278_DS_:\n;\t.line\t324; \"main.c\"\tled_yellow_enable();\n\tPAGESEL\t_led_yellow_enable\n\tCALL\t_led_yellow_enable\n\tPAGESEL\t$\n;\t.line\t325; \"main.c\"\tuart[ 1 ] &= 0x7F;  //128 max\n\tBANKSEL\t_uart\n\tMOVF\t(_uart + 1),W\n\tBANKSEL\tr0x101F\n\tMOVWF\tr0x101F\n\tBCF\tr0x101F,7\n;;/home/sdcc-builder/build/sdcc-build/orig/sdcc/src/pic14/gen.c:6828: size=0, offset=0, AOP_TYPE(res)=8\n\tMOVF\tr0x101F,W\n\tBANKSEL\t_uart\n\tMOVWF\t(_uart + 1)\n;\t.line\t326; \"main.c\"\tif ( uart_id == 5 )\n\tBANKSEL\t_uart_id\n\tMOVF\t_uart_id,W\n\tXORLW\t0x05\n\tBTFSS\tSTATUS,2\n\tGOTO\t_00282_DS_\n;\t.line\t328; \"main.c\"\twrite_eeprom( uart[ 1 ], uart[ 2 ] );\n\tBANKSEL\t_uart\n\tMOVF\t(_uart + 1),W\n\tBANKSEL\tr0x101F\n\tMOVWF\tr0x101F\n\tBANKSEL\t_uart\n\tMOVF\t(_uart + 2),W\n\tBANKSEL\tr0x1020\n\tMOVWF\tr0x1020\n\tMOVWF\tSTK00\n\tMOVF\tr0x101F,W\n\tPAGESEL\t_write_eeprom\n\tCALL\t_write_eeprom\n\tPAGESEL\t$\n;\t.line\t329; \"main.c\"\tsend_eeprom_value_to_host();\n\tPAGESEL\t_send_eeprom_value_to_host\n\tCALL\t_send_eeprom_value_to_host\n\tPAGESEL\t$\n;\t.line\t331; \"main.c\"\tbreak;\n\tGOTO\t_00282_DS_\n_00281_DS_:\n;\t.line\t336; \"main.c\"\tsend_eeprom_value_to_host();\n\tPAGESEL\t_send_eeprom_value_to_host\n\tCALL\t_send_eeprom_value_to_host\n\tPAGESEL\t$\n_00282_DS_:\n;\t.line\t340; \"main.c\"\tled_blue_enable();\n\tPAGESEL\t_led_blue_enable\n\tCALL\t_led_blue_enable\n\tPAGESEL\t$\n;\t.line\t341; \"main.c\"\tstatus &= ~( 1 << RX_FULL );\n\tBANKSEL\t_status\n\tBCF\t_status,7\n;\t.line\t343; \"main.c\"\tfor ( i = 0; i < UART_PACKET_SIZE; i++ )\n\tBANKSEL\tr0x101F\n\tCLRF\tr0x101F\n_00284_DS_:\n;\t.line\t344; \"main.c\"\tuart[ i ] = 0;\n\tBANKSEL\tr0x101F\n\tMOVF\tr0x101F,W\n\tADDLW\t(_uart + 0)\n\tMOVWF\tr0x1020\n\tMOVLW\thigh (_uart + 0)\n\tBTFSC\tSTATUS,0\n\tADDLW\t0x01\n\tMOVWF\tr0x1021\n\tMOVF\tr0x1020,W\n\tBANKSEL\tFSR\n\tMOVWF\tFSR\n\tBCF\tSTATUS,7\n\tBANKSEL\tr0x1021\n\tBTFSC\tr0x1021,0\n\tBSF\tSTATUS,7\n\tMOVLW\t0x00\n\tBANKSEL\tINDF\n\tMOVWF\tINDF\n;\t.line\t343; \"main.c\"\tfor ( i = 0; i < UART_PACKET_SIZE; i++ )\n\tBANKSEL\tr0x101F\n\tINCF\tr0x101F,F\n;;unsigned compare: left < lit(0x10=16), size=1\n\tMOVLW\t0x10\n\tSUBWF\tr0x101F,W\n\tBTFSS\tSTATUS,0\n\tGOTO\t_00284_DS_\n;;genSkipc:3307: created from rifx:00000000047A5780\n;\t.line\t345; \"main.c\"\tuart_id = 0;\n\tBANKSEL\t_uart_id\n\tCLRF\t_uart_id\n;\t.line\t346; \"main.c\"\t}\n\tRETURN\t\n; exit point of _uart_rx_packet\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;functions called:\n;   _read_eeprom\n;   _answer\n;   _read_eeprom\n;   _answer\n;1 compiler assigned register :\n;   r0x101E\n;; Starting pCode block\nS_main__send_eeprom_value_to_host\tcode\n_send_eeprom_value_to_host:\n; 2 exit points\n;;/home/sdcc-builder/build/sdcc-build/orig/sdcc/src/pic14/gen.c:6828: size=0, offset=0, AOP_TYPE(res)=8\n;\t.line\t310; \"main.c\"\tuart[ 0 ] = 0x04;\n\tMOVLW\t0x04\n\tBANKSEL\t_uart\n\tMOVWF\t(_uart + 0)\n;\t.line\t311; \"main.c\"\tuart[ 2 ] = read_eeprom( uart[ 1 ] );\n\tMOVF\t(_uart + 1),W\n\tBANKSEL\tr0x101E\n\tMOVWF\tr0x101E\n\tPAGESEL\t_read_eeprom\n\tCALL\t_read_eeprom\n\tPAGESEL\t$\n\tBANKSEL\tr0x101E\n\tMOVWF\tr0x101E\n\tBANKSEL\t_uart\n\tMOVWF\t(_uart + 2)\n;;/home/sdcc-builder/build/sdcc-build/orig/sdcc/src/pic14/gen.c:6828: size=0, offset=0, AOP_TYPE(res)=8\n;\t.line\t312; \"main.c\"\tuart[ 3 ] = 0xFF;\n\tMOVLW\t0xff\n;\t.line\t313; \"main.c\"\tuart[ 4 ] = 0xFF;\n\tMOVWF\t(_uart + 3)\n\tMOVWF\t(_uart + 4)\n;\t.line\t314; \"main.c\"\tanswer( 5 );\n\tMOVLW\t0x05\n\tPAGESEL\t_answer\n\tCALL\t_answer\n\tPAGESEL\t$\n;\t.line\t315; \"main.c\"\t}\n\tRETURN\t\n; exit point of _send_eeprom_value_to_host\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;functions called:\n;   _SendByteSerially\n;   _SendByteSerially\n;5 compiler assigned registers:\n;   r0x1019\n;   r0x101A\n;   r0x101B\n;   r0x101C\n;   r0x101D\n;; Starting pCode block\nS_main__answer\tcode\n_answer:\n; 2 exit points\n;\t.line\t301; \"main.c\"\tvoid answer( uint8_t N )\n\tBANKSEL\tr0x1019\n\tMOVWF\tr0x1019\n;\t.line\t304; \"main.c\"\tfor ( i = 0; i < N; i++ )\n\tCLRF\tr0x101A\n_00267_DS_:\n\tBANKSEL\tr0x1019\n\tMOVF\tr0x1019,W\n\tSUBWF\tr0x101A,W\n\tBTFSC\tSTATUS,0\n\tGOTO\t_00269_DS_\n;;genSkipc:3307: created from rifx:00000000047A5780\n;\t.line\t305; \"main.c\"\tSendByteSerially( uart[ i ] );\n\tMOVF\tr0x101A,W\n\tADDLW\t(_uart + 0)\n\tMOVWF\tr0x101B\n\tMOVLW\thigh (_uart + 0)\n\tBTFSC\tSTATUS,0\n\tADDLW\t0x01\n\tMOVWF\tr0x101C\n\tMOVF\tr0x101B,W\n\tBANKSEL\tFSR\n\tMOVWF\tFSR\n\tBCF\tSTATUS,7\n\tBANKSEL\tr0x101C\n\tBTFSC\tr0x101C,0\n\tBSF\tSTATUS,7\n\tBANKSEL\tINDF\n\tMOVF\tINDF,W\n;;1\tMOVWF\tr0x101D\n\tPAGESEL\t_SendByteSerially\n\tCALL\t_SendByteSerially\n\tPAGESEL\t$\n;\t.line\t304; \"main.c\"\tfor ( i = 0; i < N; i++ )\n\tBANKSEL\tr0x101A\n\tINCF\tr0x101A,F\n\tGOTO\t_00267_DS_\n_00269_DS_:\n;\t.line\t306; \"main.c\"\t}\n\tRETURN\t\n; exit point of _answer\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;1 compiler assigned register :\n;   STK00\n;; Starting pCode block\nS_main__write_eeprom\tcode\n_write_eeprom:\n; 2 exit points\n;\t.line\t286; \"main.c\"\tvoid write_eeprom( char address, char data )\n\tBANKSEL\t_EEADR\n\tMOVWF\t_EEADR\n\tMOVF\tSTK00,W\n\tMOVWF\t_EEDATA\n;\t.line\t290; \"main.c\"\tWREN = 1;\n\tBSF\t_EECON1bits,2\n;\t.line\t291; \"main.c\"\tGIE = 0;\n\tBANKSEL\t_INTCONbits\n\tBCF\t_INTCONbits,7\n;\t.line\t292; \"main.c\"\tEECON2 = 0x55;\n\tMOVLW\t0x55\n\tBANKSEL\t_EECON2\n\tMOVWF\t_EECON2\n;\t.line\t293; \"main.c\"\tEECON2 = 0xAA;\n\tMOVLW\t0xaa\n\tMOVWF\t_EECON2\n;\t.line\t294; \"main.c\"\tWR = 1;\n\tBSF\t_EECON1bits,1\n;\t.line\t295; \"main.c\"\tGIE = 1;\n\tBANKSEL\t_INTCONbits\n\tBSF\t_INTCONbits,7\n;\t.line\t296; \"main.c\"\tWREN = 0;\n\tBANKSEL\t_EECON1bits\n\tBCF\t_EECON1bits,2\n_00260_DS_:\n;\t.line\t297; \"main.c\"\twhile ( WR )\n\tBANKSEL\t_EECON1bits\n\tBTFSC\t_EECON1bits,1\n\tGOTO\t_00260_DS_\n;\t.line\t299; \"main.c\"\t}\n\tRETURN\t\n; exit point of _write_eeprom\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;functions called:\n;   __gptrget1\n;   _SendByteSerially\n;   __gptrget1\n;   _SendByteSerially\n;6 compiler assigned registers:\n;   r0x1023\n;   STK00\n;   r0x1024\n;   STK01\n;   r0x1025\n;   r0x1026\n;; Starting pCode block\nS_main__SendStringSerially\tcode\n_SendStringSerially:\n; 2 exit points\n;\t.line\t274; \"main.c\"\tvoid SendStringSerially( const unsigned char* st )\n\tBANKSEL\tr0x1023\n\tMOVWF\tr0x1023\n\tMOVF\tSTK00,W\n\tMOVWF\tr0x1024\n\tMOVF\tSTK01,W\n\tMOVWF\tr0x1025\n_00252_DS_:\n;\t.line\t276; \"main.c\"\twhile ( *st )\n\tBANKSEL\tr0x1025\n\tMOVF\tr0x1025,W\n\tMOVWF\tSTK01\n\tMOVF\tr0x1024,W\n\tMOVWF\tSTK00\n\tMOVF\tr0x1023,W\n\tPAGESEL\t__gptrget1\n\tCALL\t__gptrget1\n\tPAGESEL\t$\n\tBANKSEL\tr0x1026\n\tMOVWF\tr0x1026\n\tMOVF\tr0x1026,W\n\tBTFSC\tSTATUS,2\n\tGOTO\t_00255_DS_\n;\t.line\t277; \"main.c\"\tSendByteSerially( *st++ );\n\tINCF\tr0x1025,F\n\tBTFSC\tSTATUS,2\n\tINCF\tr0x1024,F\n\tBTFSC\tSTATUS,2\n\tINCF\tr0x1023,F\n\tMOVF\tr0x1026,W\n\tPAGESEL\t_SendByteSerially\n\tCALL\t_SendByteSerially\n\tPAGESEL\t$\n\tGOTO\t_00252_DS_\n_00255_DS_:\n;\t.line\t278; \"main.c\"\t}\n\tRETURN\t\n; exit point of _SendStringSerially\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;functions called:\n;   _led_yellow_enable\n;   _led_yellow_disable\n;   _led_yellow_enable\n;   _led_yellow_disable\n;2 compiler assigned registers:\n;   r0x1027\n;   r0x1028\n;; Starting pCode block\nS_main__timer1_int\tcode\n_timer1_int:\n; 2 exit points\n;\t.line\t218; \"main.c\"\tif ( timer1 == 100u )\n\tBANKSEL\t_timer1\n\tMOVF\t_timer1,W\n\tBANKSEL\tr0x1027\n\tMOVWF\tr0x1027\n\tBANKSEL\t_timer1\n\tMOVF\t(_timer1 + 1),W\n\tBANKSEL\tr0x1028\n\tMOVWF\tr0x1028\n\tMOVF\tr0x1027,W\n\tXORLW\t0x64\n\tBTFSS\tSTATUS,2\n\tGOTO\t_00225_DS_\n\tMOVF\tr0x1028,W\n\tXORLW\t0x00\n\tBTFSS\tSTATUS,2\n\tGOTO\t_00225_DS_\n;\t.line\t220; \"main.c\"\tif ( lauflicht )\n\tBANKSEL\t_lauflicht\n\tMOVF\t_lauflicht,W\n\tBTFSC\tSTATUS,2\n\tGOTO\t_00222_DS_\n;\t.line\t222; \"main.c\"\tlauflicht = 0;\n\tCLRF\t_lauflicht\n;\t.line\t223; \"main.c\"\tled_yellow_enable();\n\tPAGESEL\t_led_yellow_enable\n\tCALL\t_led_yellow_enable\n\tPAGESEL\t$\n\tGOTO\t_00223_DS_\n_00222_DS_:\n;\t.line\t227; \"main.c\"\tlauflicht = 1;\n\tMOVLW\t0x01\n\tBANKSEL\t_lauflicht\n\tMOVWF\t_lauflicht\n;\t.line\t228; \"main.c\"\tled_yellow_disable();\n\tPAGESEL\t_led_yellow_disable\n\tCALL\t_led_yellow_disable\n\tPAGESEL\t$\n_00223_DS_:\n;\t.line\t230; \"main.c\"\ttimer1 = 0;\n\tBANKSEL\t_timer1\n\tCLRF\t_timer1\n\tCLRF\t(_timer1 + 1)\n\tGOTO\t_00227_DS_\n_00225_DS_:\n;\t.line\t234; \"main.c\"\ttimer1++;\n\tBANKSEL\t_timer1\n\tINCF\t_timer1,F\n\tBTFSC\tSTATUS,2\n\tINCF\t(_timer1 + 1),F\n_00227_DS_:\n;\t.line\t236; \"main.c\"\t}\n\tRETURN\t\n; exit point of _timer1_int\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;; Starting pCode block\nS_main__ReceiveByteSerially\tcode\n_ReceiveByteSerially:\n; 2 exit points\n;\t.line\t195; \"main.c\"\tif ( OERR )  // If over run error, then reset the receiver\n\tBANKSEL\t_RCSTAbits\n\tBTFSS\t_RCSTAbits,1\n\tGOTO\t_00216_DS_\n;\t.line\t197; \"main.c\"\tCREN = 0;\n\tBCF\t_RCSTAbits,4\n;\t.line\t198; \"main.c\"\tCREN = 1;\n\tBSF\t_RCSTAbits,4\n_00216_DS_:\n;\t.line\t201; \"main.c\"\twhile ( !RCIF )\n\tBANKSEL\t_PIR1bits\n\tBTFSS\t_PIR1bits,5\n\tGOTO\t_00216_DS_\n;\t.line\t204; \"main.c\"\treturn RCREG;\n\tMOVF\t_RCREG,W\n;\t.line\t205; \"main.c\"\t}\n\tRETURN\t\n; exit point of _ReceiveByteSerially\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;1 compiler assigned register :\n;   r0x1018\n;; Starting pCode block\nS_main__SendByteSerially\tcode\n_SendByteSerially:\n; 2 exit points\n;\t.line\t186; \"main.c\"\tvoid SendByteSerially( unsigned char Byte )  // Writes a character to the serial port\n\tBANKSEL\tr0x1018\n\tMOVWF\tr0x1018\n_00209_DS_:\n;\t.line\t188; \"main.c\"\twhile ( !TXIF )\n\tBANKSEL\t_PIR1bits\n\tBTFSS\t_PIR1bits,4\n\tGOTO\t_00209_DS_\n;\t.line\t190; \"main.c\"\tTXREG = Byte;\n\tBANKSEL\tr0x1018\n\tMOVF\tr0x1018,W\n\tBANKSEL\t_TXREG\n\tMOVWF\t_TXREG\n;\t.line\t191; \"main.c\"\t}\n\tRETURN\t\n; exit point of _SendByteSerially\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;; Starting pCode block\nS_main__initTimer1\tcode\n_initTimer1:\n; 2 exit points\n;\t.line\t173; \"main.c\"\tT1CKPS1 = 1;  // bits 5-4  Prescaler Rate Select bits\n\tBANKSEL\t_T1CONbits\n\tBSF\t_T1CONbits,5\n;\t.line\t174; \"main.c\"\tT1CKPS0 = 1;\n\tBSF\t_T1CONbits,4\n;\t.line\t175; \"main.c\"\tT1OSCEN = 0;  // bit 3 Timer1 Oscillator Enable Control: bit 1=on\n\tBCF\t_T1CONbits,3\n;\t.line\t176; \"main.c\"\tNOT_T1SYNC =\n\tBSF\t_T1CONbits,2\n;\t.line\t178; \"main.c\"\tTMR1CS =\n\tBCF\t_T1CONbits,1\n;\t.line\t180; \"main.c\"\tTMR1IE = 1;\n\tBANKSEL\t_PIE1bits\n\tBSF\t_PIE1bits,0\n;\t.line\t181; \"main.c\"\tTMR1ON = 1;    // bit 0 enables timer\n\tBANKSEL\t_T1CONbits\n\tBSF\t_T1CONbits,0\n;\t.line\t182; \"main.c\"\tTMR1H = 0xE7;  // preset for timer1 MSB register\n\tMOVLW\t0xe7\n\tMOVWF\t_TMR1H\n;\t.line\t183; \"main.c\"\tTMR1L = 0x96;  // preset for timer1 LSB register\n\tMOVLW\t0x96\n\tMOVWF\t_TMR1L\n;\t.line\t184; \"main.c\"\t}\n\tRETURN\t\n; exit point of _initTimer1\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;1 compiler assigned register :\n;   r0x1029\n;; Starting pCode block\nS_main__initTimer0\tcode\n_initTimer0:\n; 2 exit points\n;\t.line\t131; \"main.c\"\tT0IE = 0;\n\tBANKSEL\t_INTCONbits\n\tBCF\t_INTCONbits,5\n;\t.line\t133; \"main.c\"\tT0CS = 1;  // bit 5  TMR0 Clock Source Select bit...0 = Internal Clock (CLKO) 1 = Transition on T0CKI pin\n\tBANKSEL\t_OPTION_REGbits\n\tBSF\t_OPTION_REGbits,5\n;\t.line\t134; \"main.c\"\tT0SE = 0;  // bit 4 TMR0 Source Edge Select bit 0 = low/high 1 = high/low\n\tBCF\t_OPTION_REGbits,4\n;\t.line\t135; \"main.c\"\tPSA = 0;   // bit 3  Prescaler Assignment bit...0 = Prescaler is assigned to the Timer0\n\tBCF\t_OPTION_REGbits,3\n;\t.line\t137; \"main.c\"\tif ( prescaler_timer0 & ( 1 << ( 2 ) ) )\n\tBANKSEL\t_prescaler_timer0\n\tBTFSS\t_prescaler_timer0,2\n\tGOTO\t_00193_DS_\n;\t.line\t139; \"main.c\"\tPS2 = 1;  // bits 2-0  PS2:PS0: Prescaler Rate Select bits\n\tBANKSEL\t_OPTION_REGbits\n\tBSF\t_OPTION_REGbits,2\n\tGOTO\t_00194_DS_\n_00193_DS_:\n;\t.line\t143; \"main.c\"\tPS2 = 0;\n\tBANKSEL\t_OPTION_REGbits\n\tBCF\t_OPTION_REGbits,2\n_00194_DS_:\n;\t.line\t146; \"main.c\"\tif ( prescaler_timer0 & ( 1 << ( 1 ) ) )\n\tBANKSEL\t_prescaler_timer0\n\tBTFSS\t_prescaler_timer0,1\n\tGOTO\t_00196_DS_\n;\t.line\t148; \"main.c\"\tPS1 = 1;  // bits 2-0  PS2:PS0: Prescaler Rate Select bits\n\tBANKSEL\t_OPTION_REGbits\n\tBSF\t_OPTION_REGbits,1\n\tGOTO\t_00197_DS_\n_00196_DS_:\n;\t.line\t152; \"main.c\"\tPS1 = 0;\n\tBANKSEL\t_OPTION_REGbits\n\tBCF\t_OPTION_REGbits,1\n_00197_DS_:\n;\t.line\t155; \"main.c\"\tif ( prescaler_timer0 & 1 )\n\tBANKSEL\t_prescaler_timer0\n\tMOVF\t_prescaler_timer0,W\n\tBANKSEL\tr0x1029\n\tMOVWF\tr0x1029\n\tBTFSS\tr0x1029,0\n\tGOTO\t_00199_DS_\n;\t.line\t157; \"main.c\"\tPS0 = 1;  // bits 2-0  PS2:PS0: Prescaler Rate Select bits\n\tBANKSEL\t_OPTION_REGbits\n\tBSF\t_OPTION_REGbits,0\n\tGOTO\t_00200_DS_\n_00199_DS_:\n;\t.line\t161; \"main.c\"\tPS0 = 0;\n\tBANKSEL\t_OPTION_REGbits\n\tBCF\t_OPTION_REGbits,0\n_00200_DS_:\n;\t.line\t164; \"main.c\"\ttimer0 = 0;\n\tBANKSEL\t_timer0\n\tCLRF\t_timer0\n;\t.line\t165; \"main.c\"\tTMR0 = 0;\n\tBANKSEL\t_TMR0\n\tCLRF\t_TMR0\n;\t.line\t166; \"main.c\"\tT0IE = 1;\n\tBSF\t_INTCONbits,5\n;\t.line\t167; \"main.c\"\t}\n\tRETURN\t\n; exit point of _initTimer0\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;; Starting pCode block\nS_main__InitUART\tcode\n_InitUART:\n; 2 exit points\n;\t.line\t109; \"main.c\"\tTRISB2 = 0;  // TX Pin\n\tBANKSEL\t_TRISBbits\n\tBCF\t_TRISBbits,2\n;\t.line\t110; \"main.c\"\tTRISB1 = 1;  // RX Pin\n\tBSF\t_TRISBbits,1\n;\t.line\t111; \"main.c\"\tSPBRG = ( ( _XTAL_FREQ / 16 ) / BAUDRATE ) - 1;\n\tMOVLW\t0x14\n\tMOVWF\t_SPBRG\n;\t.line\t112; \"main.c\"\tBRGH = 1;  // Fast baudrate\n\tBSF\t_TXSTAbits,2\n;\t.line\t113; \"main.c\"\tSYNC = 0;  // Asynchronous\n\tBCF\t_TXSTAbits,4\n;\t.line\t114; \"main.c\"\tSPEN = 1;  // Enable serial port pins\n\tBANKSEL\t_RCSTAbits\n\tBSF\t_RCSTAbits,7\n;\t.line\t115; \"main.c\"\tCREN = 1;  // Enable reception\n\tBSF\t_RCSTAbits,4\n;\t.line\t116; \"main.c\"\tSREN = 0;  // No effect\n\tBCF\t_RCSTAbits,5\n;\t.line\t117; \"main.c\"\tTXIE = 0;  // Disable tx interrupts\n\tBANKSEL\t_PIE1bits\n\tBCF\t_PIE1bits,4\n;\t.line\t118; \"main.c\"\tRCIE = 1;  // Enable rx interrupts\n\tBSF\t_PIE1bits,5\n;\t.line\t119; \"main.c\"\tTX9 = 0;   // 8-bit transmission\n\tBCF\t_TXSTAbits,6\n;\t.line\t120; \"main.c\"\tRX9 = 0;   // 8-bit reception\n\tBANKSEL\t_RCSTAbits\n\tBCF\t_RCSTAbits,6\n;\t.line\t121; \"main.c\"\tTXEN = 0;  // Reset transmitter\n\tBANKSEL\t_TXSTAbits\n\tBCF\t_TXSTAbits,5\n;\t.line\t122; \"main.c\"\tTXEN = 1;  // Enable the transmitter\n\tBSF\t_TXSTAbits,5\n;\t.line\t123; \"main.c\"\t}\n\tRETURN\t\n; exit point of _InitUART\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;4 compiler assigned registers:\n;   r0x102A\n;   r0x102B\n;   r0x102C\n;   r0x102D\n;; Starting pCode block\nS_main__reply\tcode\n_reply:\n; 2 exit points\n;\t.line\t88; \"main.c\"\tunsigned char ret = 0, i;\n\tBANKSEL\tr0x102A\n\tCLRF\tr0x102A\n;\t.line\t90; \"main.c\"\tfor ( i = 0; i < 8; i++ )\n\tCLRF\tr0x102B\n_00163_DS_:\n;\t.line\t92; \"main.c\"\tto;\n\tBANKSEL\t_TRISAbits\n\tBCF\t_TRISAbits,1\n;\t.line\t93; \"main.c\"\tt = 0;\n\tBANKSEL\t_PORTAbits\n\tBCF\t_PORTAbits,1\n;\t.line\t95; \"main.c\"\tti;\n\tBANKSEL\t_TRISAbits\n\tBSF\t_TRISAbits,1\n;\t.line\t97; \"main.c\"\tif ( t )\n\tBANKSEL\t_PORTAbits\n\tBTFSS\t_PORTAbits,1\n\tGOTO\t_00164_DS_\n;;103\tMOVF\tr0x102B,W\n;\t.line\t99; \"main.c\"\tret += 1 << i;\n\tMOVLW\t0x01\n\tBANKSEL\tr0x102D\n\tMOVWF\tr0x102D\n;;102\tMOVF\tr0x102C,W\n\tMOVF\tr0x102B,W\n\tMOVWF\tr0x102C\n\tBTFSC\tr0x102C,7\n\tGOTO\t_00183_DS_\n\tSUBLW\t0x00\n\tBTFSC\tSTATUS,2\n\tGOTO\t_00181_DS_\n_00180_DS_:\n\tBANKSEL\tr0x102D\n\tRLF\tr0x102D,F\n\tADDLW\t0x01\n\tBTFSS\tSTATUS,0\n\tGOTO\t_00180_DS_\n\tGOTO\t_00181_DS_\n_00183_DS_:\n\tBCF\tSTATUS,0\n\tBANKSEL\tr0x102D\n\tBTFSC\tr0x102D,7\n\tBSF\tSTATUS,0\n\tRRF\tr0x102D,F\n\tADDLW\t0x01\n\tBTFSS\tSTATUS,0\n\tGOTO\t_00183_DS_\n_00181_DS_:\n\tBANKSEL\tr0x102A\n\tMOVF\tr0x102A,W\n\tMOVWF\tr0x102C\n\tMOVF\tr0x102D,W\n\tADDWF\tr0x102C,W\n\tMOVWF\tr0x102A\n_00164_DS_:\n;\t.line\t90; \"main.c\"\tfor ( i = 0; i < 8; i++ )\n\tBANKSEL\tr0x102B\n\tINCF\tr0x102B,F\n;;unsigned compare: left < lit(0x8=8), size=1\n\tMOVLW\t0x08\n\tSUBWF\tr0x102B,W\n\tBTFSS\tSTATUS,0\n\tGOTO\t_00163_DS_\n;;genSkipc:3307: created from rifx:00000000047A5780\n;\t.line\t103; \"main.c\"\tti;\n\tBANKSEL\t_TRISAbits\n\tBSF\t_TRISAbits,1\n;\t.line\t104; \"main.c\"\treturn ret;\n\tBANKSEL\tr0x102A\n\tMOVF\tr0x102A,W\n;\t.line\t105; \"main.c\"\t}\n\tRETURN\t\n; exit point of _reply\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;1 compiler assigned register :\n;   r0x102E\n;; Starting pCode block\nS_main__sensor_rst\tcode\n_sensor_rst:\n; 2 exit points\n;\t.line\t77; \"main.c\"\tto;\n\tBANKSEL\t_TRISAbits\n\tBCF\t_TRISAbits,1\n;\t.line\t78; \"main.c\"\tt = 0;\n\tBANKSEL\t_PORTAbits\n\tBCF\t_PORTAbits,1\n;\t.line\t80; \"main.c\"\tti;\n\tBANKSEL\t_TRISAbits\n\tBSF\t_TRISAbits,1\n;\t.line\t83; \"main.c\"\treturn t;  //return 0 for sensor present\n\tBANKSEL\tr0x102E\n\tCLRF\tr0x102E\n\tBANKSEL\t_PORTAbits\n\tBTFSS\t_PORTAbits,1\n\tGOTO\t_00001_DS_\n\tBANKSEL\tr0x102E\n\tINCF\tr0x102E,F\n_00001_DS_:\n\tBANKSEL\tr0x102E\n\tMOVF\tr0x102E,W\n;\t.line\t84; \"main.c\"\t}\n\tRETURN\t\n; exit point of _sensor_rst\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;6 compiler assigned registers:\n;   r0x102F\n;   r0x1030\n;   r0x1031\n;   r0x1032\n;   r0x1033\n;   r0x1034\n;; Starting pCode block\nS_main__cmnd_w\tcode\n_cmnd_w:\n; 2 exit points\n;\t.line\t48; \"main.c\"\tvoid cmnd_w( unsigned char cmnd )\n\tBANKSEL\tr0x102F\n\tMOVWF\tr0x102F\n;\t.line\t52; \"main.c\"\tfor ( i = 0; i < 8; i++ )\n\tCLRF\tr0x1030\n_00133_DS_:\n;\t.line\t54; \"main.c\"\tif ( cmnd & ( 1 << i ) )\n\tMOVLW\t0x00\n\tBANKSEL\tr0x1031\n\tMOVWF\tr0x1031\n\tMOVLW\t0x01\n\tMOVWF\tr0x1032\n\tMOVF\tr0x1030,W\n\tSUBLW\t0x00\n\tBTFSC\tSTATUS,2\n\tGOTO\t_00151_DS_\n_00150_DS_:\n\tBANKSEL\tr0x1032\n\tRLF\tr0x1032,F\n\tRLF\tr0x1031,F\n\tADDLW\t0x01\n\tBTFSS\tSTATUS,0\n\tGOTO\t_00150_DS_\n;;101\tMOVF\tr0x102F,W\n;;99\tMOVWF\tr0x1033\n;;1\tCLRF\tr0x1034\n;;100\tMOVF\tr0x1033,W\n_00151_DS_:\n\tBANKSEL\tr0x102F\n\tMOVF\tr0x102F,W\n\tANDWF\tr0x1032,F\n\tMOVLW\t0x00\n\tANDWF\tr0x1031,F\n\tMOVF\tr0x1031,W\n\tIORWF\tr0x1032,W\n\tBTFSC\tSTATUS,2\n\tGOTO\t_00130_DS_\n;\t.line\t56; \"main.c\"\tto;\n\tBANKSEL\t_TRISAbits\n\tBCF\t_TRISAbits,1\n;\t.line\t57; \"main.c\"\tt = 0;\n\tBANKSEL\t_PORTAbits\n\tBCF\t_PORTAbits,1\n;\t.line\t59; \"main.c\"\tti;\n\tBANKSEL\t_TRISAbits\n\tBSF\t_TRISAbits,1\n\tGOTO\t_00134_DS_\n_00130_DS_:\n;\t.line\t64; \"main.c\"\tto;\n\tBANKSEL\t_TRISAbits\n\tBCF\t_TRISAbits,1\n;\t.line\t65; \"main.c\"\tt = 0;\n\tBANKSEL\t_PORTAbits\n\tBCF\t_PORTAbits,1\n;\t.line\t67; \"main.c\"\tti;\n\tBANKSEL\t_TRISAbits\n\tBSF\t_TRISAbits,1\n_00134_DS_:\n;\t.line\t52; \"main.c\"\tfor ( i = 0; i < 8; i++ )\n\tBANKSEL\tr0x1030\n\tINCF\tr0x1030,F\n;;unsigned compare: left < lit(0x8=8), size=1\n\tMOVLW\t0x08\n\tSUBWF\tr0x1030,W\n\tBTFSS\tSTATUS,0\n\tGOTO\t_00133_DS_\n;;genSkipc:3307: created from rifx:00000000047A5780\n;\t.line\t71; \"main.c\"\tti;\n\tBANKSEL\t_TRISAbits\n\tBSF\t_TRISAbits,1\n;\t.line\t72; \"main.c\"\t}\n\tRETURN\t\n; exit point of _cmnd_w\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;; Starting pCode block\nS_main__led_blue_disable\tcode\n_led_blue_disable:\n; 2 exit points\n;\t.line\t45; \"main.c\"\tRB5 = 0;\n\tBANKSEL\t_PORTBbits\n\tBCF\t_PORTBbits,5\n;\t.line\t46; \"main.c\"\t}\n\tRETURN\t\n; exit point of _led_blue_disable\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;; Starting pCode block\nS_main__led_blue_enable\tcode\n_led_blue_enable:\n; 2 exit points\n;\t.line\t40; \"main.c\"\tRB5 = 1;\n\tBANKSEL\t_PORTBbits\n\tBSF\t_PORTBbits,5\n;\t.line\t41; \"main.c\"\t}\n\tRETURN\t\n; exit point of _led_blue_enable\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;; Starting pCode block\nS_main__led_green_disable\tcode\n_led_green_disable:\n; 2 exit points\n;\t.line\t35; \"main.c\"\tRB4 = 0;\n\tBANKSEL\t_PORTBbits\n\tBCF\t_PORTBbits,4\n;\t.line\t36; \"main.c\"\t}\n\tRETURN\t\n; exit point of _led_green_disable\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;; Starting pCode block\nS_main__led_green_enable\tcode\n_led_green_enable:\n; 2 exit points\n;\t.line\t30; \"main.c\"\tRB4 = 1;\n\tBANKSEL\t_PORTBbits\n\tBSF\t_PORTBbits,4\n;\t.line\t31; \"main.c\"\t}\n\tRETURN\t\n; exit point of _led_green_enable\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;; Starting pCode block\nS_main__led_yellow_disable\tcode\n_led_yellow_disable:\n; 2 exit points\n;\t.line\t25; \"main.c\"\tRB3 = 0;\n\tBANKSEL\t_PORTBbits\n\tBCF\t_PORTBbits,3\n;\t.line\t26; \"main.c\"\t}\n\tRETURN\t\n; exit point of _led_yellow_disable\n\n;***\n;  pBlock Stats: dbName = C\n;***\n;has an exit\n;; Starting pCode block\nS_main__led_yellow_enable\tcode\n_led_yellow_enable:\n; 2 exit points\n;\t.line\t20; \"main.c\"\tRB3 = 1;\n\tBANKSEL\t_PORTBbits\n\tBSF\t_PORTBbits,3\n;\t.line\t21; \"main.c\"\t}\n\tRETURN\t\n; exit point of _led_yellow_enable\n\n\n;\tcode size estimation:\n;\t  460+  183 =   643 instructions ( 1652 byte)\n\n\tend\n",
 			"file": "main.asm",
+			"file_size": 31201,
+			"file_write_time": 132307259574416985,
 			"settings":
 			{
 				"buffer_size": 29788,
@@ -98,7 +84,6 @@
 			"settings":
 			{
 				"buffer_size": 2061,
-				"encoding": "UTF-8",
 				"line_ending": "Windows",
 				"name": ";-------------------------------------------------"
 			}
@@ -176,7 +161,7 @@
 			],
 			[
 				"MAKEFILES",
-				"make"
+				"clean"
 			]
 		],
 		[
@@ -452,7 +437,7 @@
 			]
 		]
 	],
-	"build_varint": "make",
+	"build_varint": "clean",
 	"command_palette":
 	{
 		"height": 0.0,
@@ -520,6 +505,7 @@
 	],
 	"file_history":
 	[
+		"/C/Users/vkuzmenko/FLCQ/main.lst",
 		"/C/Users/vkuzmenko/FLCQ/eeprom.lst",
 		"/C/Users/vkuzmenko/FLCQ/.cod",
 		"/C/Users/vkuzmenko/FLCQ/.cof",
@@ -568,7 +554,7 @@
 	],
 	"find":
 	{
-		"height": 39.0
+		"height": 24.0
 	},
 	"find_in_files":
 	{
@@ -622,8 +608,8 @@
 						"selection":
 						[
 							[
-								7112,
-								7112
+								6533,
+								6533
 							]
 						],
 						"settings":
@@ -633,7 +619,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 5261.0,
+						"translation.y": 5199.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
@@ -641,66 +627,6 @@
 				},
 				{
 					"buffer": 1,
-					"file": "main.lst",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 117071,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "eeprom.lst",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 21886,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1409,
-								1409
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 4,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
 					"file": "main.asm",
 					"semi_transient": false,
 					"settings":
@@ -729,7 +655,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 2,
 					"file": "eeprom.asm",
 					"semi_transient": false,
 					"settings":
@@ -755,11 +681,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
-					"buffer": 5,
+					"buffer": 3,
 					"file": "timer0.asm",
 					"semi_transient": false,
 					"settings":
@@ -779,18 +705,18 @@
 						{
 							"auto_name": ";-------------------------------------------------",
 							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"tab_size": 5,
+							"tab_size": 2,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 6,
+					"stack_index": 4,
 					"type": "text"
 				},
 				{
-					"buffer": 6,
+					"buffer": 4,
 					"file": "timer0.inc",
 					"semi_transient": false,
 					"settings":
@@ -815,11 +741,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 7,
+					"stack_index": 5,
 					"type": "text"
 				},
 				{
-					"buffer": 7,
+					"buffer": 5,
 					"file": "FLCQ.code-workspace",
 					"semi_transient": false,
 					"settings":
@@ -843,11 +769,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 11,
+					"stack_index": 9,
 					"type": "text"
 				},
 				{
-					"buffer": 8,
+					"buffer": 6,
 					"file": "FLCQ.sublime-project",
 					"semi_transient": false,
 					"settings":
@@ -873,11 +799,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 9,
+					"stack_index": 7,
 					"type": "text"
 				},
 				{
-					"buffer": 9,
+					"buffer": 7,
 					"file": "counter-0.4.asm",
 					"semi_transient": false,
 					"settings":
@@ -907,7 +833,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 10,
+					"buffer": 8,
 					"file": "Makefile",
 					"semi_transient": false,
 					"settings":
@@ -931,11 +857,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 8,
+					"stack_index": 6,
 					"type": "text"
 				},
 				{
-					"buffer": 11,
+					"buffer": 9,
 					"file": "/C/Users/vkuzmenko/AppData/Roaming/Sublime Text 3/Packages/User/clang_format.sublime-settings",
 					"semi_transient": false,
 					"settings":
@@ -959,7 +885,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 10,
+					"stack_index": 8,
 					"type": "text"
 				}
 			]
