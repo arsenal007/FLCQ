@@ -122,7 +122,7 @@ void InitUART( void )
   TXEN = 1;  // Enable the transmitter
 }
 
-uint16_t timer0 = 0;
+uint32_t timer0 = 0;
 
 uint8_t prescaler_timer0 = 0;
 
@@ -345,11 +345,13 @@ void timer1_int( void )
   TMR1IF = 0;
   T0IE = 0;
   if ( prescaler == 1u )
-    uart_freq( ( timer0 * 256 + TMR0 ) * prescaler * 10u );
+  {
+    uart_freq( ( timer0 * 256 + TMR0 ) * prescaler );
+  }
   else if ( timer0 < 750 )
     freq_mesure( decrement_prescaler() );
   else
-    uart_freq( ( timer0 * 256 + TMR0 ) * prescaler * 10u );
+    uart_freq( ( timer0 * 256 + TMR0 ) * prescaler );
 }
 
 //void __interrupt() isr( void )
