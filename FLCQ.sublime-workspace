@@ -118,7 +118,7 @@
 			"file": "FLCQ.sublime-workspace",
 			"settings":
 			{
-				"buffer_size": 64632,
+				"buffer_size": 19579,
 				"line_ending": "Unix"
 			}
 		},
@@ -436,7 +436,7 @@
 			]
 		]
 	],
-	"build_varint": "make",
+	"build_varint": "",
 	"command_palette":
 	{
 		"height": 0.0,
@@ -831,7 +831,7 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 64632,
+						"buffer_size": 19579,
 						"regions":
 						{
 						},
