@@ -11,6 +11,14 @@
 #include <pic16f628a.h>
 #include <stdint.h>
 
+extern uint8_t leds_end;
+extern uint8_t leds_reg;
+
+extern void leds_init( void );
+extern void leds( uint8_t );
+extern void leds_set_end( uint8_t );
+extern void leds_over( void );
+
 #define t RA1          //sensor pin
 #define ti TRISA1 = 1  //sensor is output
 #define to TRISA1 = 0  //sensor is input
@@ -61,7 +69,7 @@ unsigned char reply( void )
   {  //read 8 bits
     to;
     t = 0;
-    //__delay_us( 2 );
+    delay_us( 2 );
     ti;
     //__delay_us( 6 );
     if ( t )
@@ -125,14 +133,14 @@ typedef union {
   uint8_t entire;
   struct
   {
-    unsigned _RX_FULL_ : 1;           // 7
-    unsigned _TIMER0_INTERRUPT_ : 1;  // 6
-    unsigned _LED_GREEN_ : 1;         // 5
-    unsigned _LED_BLUE_ : 1;          // 4
-    unsigned _LED_YELLOW_ : 1;        // 3
+    unsigned _RX_FULL_ : 1;           // 0
+    unsigned _TIMER0_INTERRUPT_ : 1;  // 1
     unsigned _SERIE_ : 1;             // 2
-    unsigned _UNDIFINED1_ : 1;        // 1
-    unsigned _UNDIFINED0_ : 1;        // 1
+    unsigned _LED_YELLOW_ : 1;        // 3
+    unsigned _LED_BLUE_ : 1;          // 4
+    unsigned _LED_GREEN_ : 1;         // 5
+    unsigned _UNDIFINED1_ : 1;        // 6
+    unsigned _UNDIFINED0_ : 1;        // 7
   };
 } FLCQ_STATUS_t;
 
@@ -217,9 +225,11 @@ void uart_freq( void )
     serie_counter--;
     freq_mesure_init();
   }
+  else
+  {
+    leds_over();
+  }
 }
-
-const uint8_t test[ 720 ] = { 0 };
 
 // calls after interrupt of timer1
 // register TMR0, timer0_overflows and timer0_prescaler
@@ -341,8 +351,10 @@ void uart_rx_packet( void )
     }
     case ( 0x07 ):
     {
-      uart[ 1 ]--;
-      serie_counter = uart[ 1 ];
+      leds( uart[ 1 ] );
+      leds_set_end( uart[ 2 ] );
+      uart[ 3 ]--;
+      serie_counter = uart[ 3 ];
       freq_mesure1();
       break;
     }
@@ -355,33 +367,9 @@ void uart_rx_packet( void )
   RX_FULL = 0;
 }
 
-void leds( void )
-{
-  if ( LED_YELLOW )
-    RB3 = 1;
-  else
-    RB3 = 0;
-
-  if ( LED_BLUE )
-    RB4 = 1;
-  else
-    RB4 = 0;
-
-  if ( LED_GREEN )
-    RB5 = 1;
-  else
-    RB5 = 0;
-}
-
 void main( void )
 {
-  TRISB3 = 0;
-  TRISB4 = 0;
-  TRISB5 = 0;
-  RB3 = 0;  // YELLOW
-  RB4 = 0;  // BLUE
-  RB5 = 0;  // GREEN
-
+  leds_init();
   InitUART();  // Initialize UART
   //initTimer1();
   //sensor_rst();     //sensor init
@@ -404,7 +392,5 @@ void main( void )
   {
     if ( RX_FULL ) uart_rx_packet();
     if ( TIMER1_INTERRUPT ) timer1_int();
-    leds();
-    //__delay_ms( 1000 );
   }
 }

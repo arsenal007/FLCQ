@@ -48,19 +48,74 @@
 	"buffers":
 	[
 		{
+			"contents": "/*\n * File:   main.c\n * Author: Vasyl\n *\n * Created on March 29, 2020, 8:41 AM\n */\n\n#define _XTAL_FREQ 20000000\n#define BAUDRATE 57600\n\n#include <pic16f628a.h>\n#include <stdint.h>\n\nextern uint8_t leds_end;\nextern uint8_t leds_reg;\n\nextern void leds_init( void );\nextern void leds( uint8_t );\nextern void leds_set_end( uint8_t );\nextern void leds_over( void );\n\n#define t RA1          //sensor pin\n#define ti TRISA1 = 1  //sensor is output\n#define to TRISA1 = 0  //sensor is input\n\nvoid cmnd_w( unsigned char cmnd )\n{  //send command to temperature sensor\n  unsigned char i;\n\n  for ( i = 0; i < 8; i++ )\n  {  //8 bits\n    if ( cmnd & ( 1 << i ) )\n    {\n      to;\n      t = 0;\n      //__delay_us( 2 );\n      ti;\n      //__delay_us( 80 );\n    }\n    else\n    {\n      to;\n      t = 0;\n      //__delay_us( 80 );\n      ti;\n      //__delay_us( 2 );\n    }  //hold output low if bit is low\n  }\n  ti;\n}\n\nunsigned char sensor_rst( void )\n{  //reset the temperature\n\n  to;\n  t = 0;\n  //__delay_us( 600 );\n  ti;\n  //__delay_us( 100 );\n  //__delay_us( 600 );\n  return t;  //return 0 for sensor present\n}\n\nunsigned char reply( void )\n{  //reply from sensor\n  unsigned char ret = 0, i;\n\n  for ( i = 0; i < 8; i++ )\n  {  //read 8 bits\n    to;\n    t = 0;\n    delay_us( 2 );\n    ti;\n    //__delay_us( 6 );\n    if ( t )\n    {\n      ret += 1 << i;\n    }\n    //__delay_us( 80 );  //output high=bit is high\n  }\n  ti;\n  return ret;\n}\n\nvoid InitUART( void )\n{\n  TRISB2 = 0;  // TX Pin\n  TRISB1 = 1;  // RX Pin\n  SPBRG = ( ( _XTAL_FREQ / 16 ) / BAUDRATE ) - 1;\n  BRGH = 1;  // Fast baudrate\n  SYNC = 0;  // Asynchronous\n  SPEN = 1;  // Enable serial port pins\n  CREN = 1;  // Enable reception\n  SREN = 0;  // No effect\n  TXIE = 0;  // Disable tx interrupts\n  RCIE = 1;  // Enable rx interrupts\n  TX9 = 0;   // 8-bit transmission\n  RX9 = 0;   // 8-bit reception\n  TXEN = 0;  // Reset transmitter\n  TXEN = 1;  // Enable the transmitter\n}\n\nuint16_t timer0_overflows;\nuint8_t timer0_prescaler = 5;\n\nvoid SendByteSerially( unsigned char Byte )  // Writes a character to the serial port\n{\n  while ( !TXIF )\n    ;  // wait for previous transmission to finish\n  TXREG = Byte;\n}\n\nunsigned char ReceiveByteSerially( void )  // Reads a character from the serial port\n{\n  if ( OERR )  // If over run error, then reset the receiver\n  {\n    CREN = 0;\n    CREN = 1;\n  }\n\n  while ( !RCIF )\n    ;  // Wait for transmission to receive\n\n  return RCREG;\n}\n\n#define UART_PACKET_SIZE 16u\nuint32_t end;\nuint8_t uart[ UART_PACKET_SIZE ];\nuint8_t uart_id;\n\ntypedef union {\n  uint8_t entire;\n  struct\n  {\n    unsigned _RX_FULL_ : 1;           // 0\n    unsigned _TIMER0_INTERRUPT_ : 1;  // 1\n    unsigned _SERIE_ : 1;             // 2\n    unsigned _LED_YELLOW_ : 1;        // 3\n    unsigned _LED_BLUE_ : 1;          // 4\n    unsigned _LED_GREEN_ : 1;         // 5\n    unsigned _UNDIFINED1_ : 1;        // 6\n    unsigned _UNDIFINED0_ : 1;        // 7\n  };\n} FLCQ_STATUS_t;\n\nFLCQ_STATUS_t b;\n\n#define RX_FULL b._RX_FULL_\n#define TIMER1_INTERRUPT b._TIMER0_INTERRUPT_\n#define LED_GREEN b._LED_GREEN_\n#define LED_BLUE b._LED_BLUE_\n#define LED_YELLOW b._LED_YELLOW_\n#define SERIE b._SERIE_\n\nvoid SetPrescaler( uint8_t _option_reg );\nvoid PrescalerOff( void );\n\nconst uint8_t option_reg[ 5 ] = {\n  0b00100000,  // PSC_DIV_BY_2\n  0b00100001,  // PSC_DIV_BY_4\n  0b00100010,  // PSC_DIV_BY_8\n  0b00100011,  // PSC_DIV_BY_16\n  0b00100100   // PSC_DIV_BY_32\n};\n\nvoid freq_mesure_init( void )\n{\n  T0SE = 0;  // bit 4 TMR0 Source Edge Select bit 0 = low/high 1 = high/low\n  timer0_overflows = 0;\n\n  // Timer1 Registers:\n  // Prescaler=1:8; TMR1 Preset=0;\n  // aprox: Freq=9.53674Hz; Period=0.1048576 s\n  T1CKPS1 = 1;  // bits 5-4  Prescaler Rate Select bits\n  T1CKPS0 = 1;\n  T1OSCEN = 0;  // bit 3 Timer1 Oscillator Enable Control: bit 1=on\n  NOT_T1SYNC =\n      1;  // bit 2 Timer1 External Clock Input Synchronization Control bit: 1=Do not synchronize external clock input\n  TMR1CS =\n      0;  // bit 1 Timer1 Clock Source Select bit: 0=Internal clock (FOSC/4) / 1 = External clock from pin T1CKI (on the rising edge)\n  TMR1IE = 1;\n  TMR1H = 0;   // preset for timer1 MSB register\n  TMR1L = 0;   // preset for timer1 LSB register\n               //\n  TMR1ON = 1;  // bit 0 enables timer\n\n  TMR0 = 0;\n  T0IE = 1;\n\n  TRISA3 = 1;  // TRISA3 = 1 enable it as input\n}\n\nvoid freq_mesure( void )\n{\n  if ( timer0_prescaler )\n    SetPrescaler( option_reg[ --timer0_prescaler ] );\n  else\n    PrescalerOff();\n  freq_mesure_init();\n}\n\nvoid freq_mesure1( void )\n{\n  timer0_prescaler = 5;\n  freq_mesure();\n}\n\nvoid answer( uint8_t N );\n\nuint8_t serie_counter;\n\nvoid uart_freq( void )\n{\n  uart[ 0 ] = 0x06;\n  uart[ 1 ] = timer0_prescaler;\n  uart[ 2 ] = TMR0;\n  uart[ 3 ] = ( timer0_overflows >> 8 ) & 0xff;\n  uart[ 4 ] = timer0_overflows & 0xff;\n  uart[ 5 ] = 0xFF;\n  uart[ 6 ] = 0xFF;\n  answer( 7 );\n  if ( serie_counter )\n  {\n    serie_counter--;\n    freq_mesure_init();\n  }\n  else\n  {\n    leds_over();\n  }\n}\n\n// calls after interrupt of timer1\n// register TMR0, timer0_overflows and timer0_prescaler\n// contains raw data\nvoid timer1_int( void )\n{\n  // Max input frequency 4Mhz * 0.1048576 = 419430.4\n  // 419430.4 = 1638 * 256 + 102.4\n  // 1638 maximal overflow count for timer0\n  // we have good resolution,\n  // when we are measuring at input frequencies 2..4Mhz\n  // so when our overflow counter is between 1638/2=819...1638\n\n  if ( timer0_prescaler == 0 )\n    uart_freq();\n  else if ( timer0_overflows < 819 )\n    freq_mesure();  // freq_mesure does always prescaler decrement\n  else\n    uart_freq();\n  TIMER1_INTERRUPT = 0;\n}\n\n//void __interrupt() isr( void )\nvoid isr( void ) __interrupt 0\n{\n  // If UART Rx Interrupt\n  if ( RCIF )\n  {\n    if ( RX_FULL )\n    {\n      ReceiveByteSerially();  // dummy read\n    }\n    else\n    {\n      uart[ uart_id ] = ReceiveByteSerially();\n      uart_id++;\n      uart_id &= 0b00001111;\n      if ( ( 4 <= uart_id ) && ( uart[ uart_id - 1 ] == 0xFF ) && ( uart[ uart_id - 2 ] == 0xFF ) ) RX_FULL = 1;\n    }\n  }\n  else if ( TMR0IF )\n  {\n    TMR0IF = 0;\n    timer0_overflows++;\n  }\n  else if ( TMR1IF )\n  {\n    TRISA3 = 0;\n    TMR1ON = 0;  // disable timer\n    TMR1IF = 0;\n    T0IE = 0;\n    TIMER1_INTERRUPT = 1;\n  }\n}\n\nvoid SendStringSerially( const unsigned char* st )\n{\n  while ( *st )\n    SendByteSerially( *st++ );\n}\n\nuint8_t eeprom_address;\nuint8_t eeprom_data;\nuint8_t tempL, tempH;\n\nuint8_t read_eeprom( uint8_t address );\n\nvoid write_eeprom( char address, char data )\n{\n  EEADR = address;\n  EEDATA = data;\n  WREN = 1;\n  GIE = 0;\n  EECON2 = 0x55;\n  EECON2 = 0xAA;\n  WR = 1;\n  GIE = 1;\n  WREN = 0;\n  while ( WR )\n    ;\n}\n\nvoid answer( uint8_t N )\n{\n  uint8_t i;\n  for ( i = 0; i < N; i++ )\n    SendByteSerially( uart[ i ] );\n}\n\nvoid send_eeprom_value_to_host( void )\n{\n  uart[ 0 ] = 0x04;\n  uart[ 2 ] = read_eeprom( uart[ 1 ] );\n  uart[ 3 ] = 0xFF;\n  uart[ 4 ] = 0xFF;\n  answer( 5 );\n}\n\nvoid uart_rx_packet( void )\n{\n  switch ( uart[ 0 ] )\n  {\n    // write eeprom\n    case ( 0x03 ):\n    {\n      uart[ 1 ] &= 0x7F;  //128 max\n      if ( uart_id == 5 )\n      {\n        write_eeprom( uart[ 1 ], uart[ 2 ] );\n        send_eeprom_value_to_host();\n      }\n      break;\n    }\n    // read eeprom\n    case ( 0x05 ):\n    {\n      send_eeprom_value_to_host();\n      break;\n    }\n    case ( 0x07 ):\n    {\n      leds( uart[ 1 ] );\n      leds_set_end( uart[ 2 ] );\n      uart[ 3 ]--;\n      serie_counter = uart[ 3 ];\n      freq_mesure1();\n      break;\n    }\n  }\n\n  uint8_t i;\n  for ( i = 0; i < UART_PACKET_SIZE; i++ )\n    uart[ i ] = 0;\n  uart_id = 0;\n  RX_FULL = 0;\n}\n\nvoid main( void )\n{\n  leds_init();\n  InitUART();  // Initialize UART\n  //initTimer1();\n  //sensor_rst();     //sensor init\n  //cmnd_w( 0xCC );   //skip ROM command\n  //cmnd_w( 0xBE );   //read pad command\n  //tempL = reply();  //LSB of temp\n  //tempH = reply();  //MSB of temp\n  //sensor_rst();\n  //sensor_rst();\n  //cmnd_w( 0xCC );  //skip ROM command\n  //cmnd_w( 0x44 );  //start convertion command\n\n  //SendStringSerially( \"FLCQ ver. 1.0\\n\" );  // Send string on UART\n\n  // Enable Peripheral Interrupts\n  GIE = 1;  // Enable global interrupts\n  PEIE = 1;\n\n  while ( 1 )\n  {\n    if ( RX_FULL ) uart_rx_packet();\n    if ( TIMER1_INTERRUPT ) timer1_int();\n  }\n}\n",
 			"file": "main.c",
+			"file_size": 8580,
+			"file_write_time": 132310844127579943,
 			"settings":
 			{
-				"buffer_size": 9881,
-				"encoding": "UTF-8",
+				"buffer_size": 8180,
 				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "FLCQ.sublime-workspace",
+			"settings":
+			{
+				"buffer_size": 20966,
+				"line_ending": "Unix"
 			}
 		},
 		{
 			"file": "main.asm",
 			"settings":
 			{
-				"buffer_size": 40071,
+				"buffer_size": 29911,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "timer0.asm",
+			"settings":
+			{
+				"buffer_size": 3842,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "leds.asm",
+			"settings":
+			{
+				"buffer_size": 1154,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "gpasm-1.5.0 #1285 (Sep 12 2016)    leds_c.asm   4-11-2020  16:07:11         PAGE  1\n\n\nLOC    OBJECT CODE    LINE  SOURCE TEXT\n  VALUE\n\n                      00001 ;--------------------------------------------------------\n                      00002 ; File Created by SDCC : free open source ANSI-C Compiler\n                      00003 ; Version 4.0.0 #11528 (MINGW64)\n                      00004 ;--------------------------------------------------------\n                      00005 ; PIC port for the 14-bit core\n                      00006 ;--------------------------------------------------------\n                      00007 ;       .file   \"leds_c.c\"\n                      00008         list    p=16f628a\n                      00009         radix dec\n                      00010         include \"p16f628a.inc\"\n                      00001         LIST\n                      00002 \n                      00003 ;==========================================================================\n                      00004 ; Build date : Oct 21 2015\n                      00005 ;  MPASM PIC16F628A processor include\n                      00006 ; \n                      00007 ;  (c) Copyright 1999-2015 Microchip Technology, All rights reserved\n                      00008 ;==========================================================================\n                      00009 \n                      00386         LIST\n                      00011 ;--------------------------------------------------------\n                      00012 ; external declarations\n                      00013 ;--------------------------------------------------------\n  0000                00014         extern  _leds_end\n  0000                00015         extern  _leds_reg\n                      00016 \n  0000                00017         extern PSAVE\n  0000                00018         extern SSAVE\n  0000                00019         extern WSAVE\n  0000                00020         extern STK12\n  0000                00021         extern STK11\n  0000                00022         extern STK10\n  0000                00023         extern STK09\n  0000                00024         extern STK08\n  0000                00025         extern STK07\n  0000                00026         extern STK06\n  0000                00027         extern STK05\n  0000                00028         extern STK04\n  0000                00029         extern STK03\n  0000                00030         extern STK02\n  0000                00031         extern STK01\n  0000                00032         extern STK00\n                      00033 ;--------------------------------------------------------\n                      00034 ; global declarations\n                      00035 ;--------------------------------------------------------\n  0000                00036         global  _leds_over\n  0000                00037         global  _leds_set_end\n  0000                00038         global  _leds\n                      00039 \n                      00040 ;--------------------------------------------------------\n                      00041 ; global definitions\n                      00042 ;--------------------------------------------------------\n                      00043 ;--------------------------------------------------------\n\fgpasm-1.5.0 #1285 (Sep 12 2016)    leds_c.asm   4-11-2020  16:07:11         PAGE  2\n\n\nLOC    OBJECT CODE    LINE  SOURCE TEXT\n  VALUE\n\n                      00044 ; absolute symbol definitions\n                      00045 ;--------------------------------------------------------\n                      00046 ;--------------------------------------------------------\n                      00047 ; compiler-defined variables\n                      00048 ;--------------------------------------------------------\n                      00049 ;--------------------------------------------------------\n                      00050 ; initialized data\n                      00051 ;--------------------------------------------------------\n                      00052 ;--------------------------------------------------------\n                      00053 ; initialized absolute data\n                      00054 ;--------------------------------------------------------\n                      00055 ;--------------------------------------------------------\n                      00056 ; overlayable items in internal ram \n                      00057 ;--------------------------------------------------------\n                      00058 ;       udata_ovr\n                      00059 ;--------------------------------------------------------\n                      00060 ; code\n                      00061 ;--------------------------------------------------------\n                      00062 code_leds_c     code\n                      00063 ;***\n                      00064 ;  pBlock Stats: dbName = C\n                      00065 ;***\n                      00066 ;has an exit\n                      00067 ;functions called:\n                      00068 ;   _leds\n                      00069 ;   _leds\n                      00070 ;; Starting pCode block\n                      00071 S_leds_c__leds_over     code\n0000                  00072 _leds_over:\n                      00073 ; 2 exit points\n                      00074 ;       .line   68; \"leds_c.c\"  leds( leds_end );\n0000   0??? 0???      00075         BANKSEL _leds_end\n0002   08??           00076         MOVF    _leds_end,W\nMessage[1304]: Page selection not needed for this device. No code generated.\n                      00077         PAGESEL _leds\n0003   2???           00078         CALL    _leds\nMessage[1304]: Page selection not needed for this device. No code generated.\n                      00079         PAGESEL $\n                      00080 ;       .line   69; \"leds_c.c\"  }\n0004   0008           00081         RETURN  \n                      00082 ; exit point of _leds_over\n                      00083 \n                      00084 ;***\n                      00085 ;  pBlock Stats: dbName = C\n                      00086 ;***\n                      00087 ;has an exit\n                      00088 ;; Starting pCode block\n                      00089 S_leds_c__leds_set_end  code\n0000                  00090 _leds_set_end:\n                      00091 ; 2 exit points\n                      00092 ;       .line   61; \"leds_c.c\"  void leds_set_end( uint8_t port )\n0000   0??? 0???      00093         BANKSEL _leds_end\n0002   00??           00094         MOVWF   _leds_end\n\fgpasm-1.5.0 #1285 (Sep 12 2016)    leds_c.asm   4-11-2020  16:07:11         PAGE  3\n\n\nLOC    OBJECT CODE    LINE  SOURCE TEXT\n  VALUE\n\n                      00095 ;       .line   64; \"leds_c.c\"  }\n0003   0008           00096         RETURN  \n                      00097 ; exit point of _leds_set_end\n                      00098 \n                      00099 ;***\n                      00100 ;  pBlock Stats: dbName = C\n                      00101 ;***\n                      00102 ;has an exit\n                      00103 ;1 compiler assigned register :\n                      00104 ;   r0x1002\n                      00105 ;; Starting pCode block\n                      00106 S_leds_c__leds  code\n0000                  00107 _leds:\n                      00108 ; 2 exit points\n                      00109 ;;1     MOVWF   r0x1002\n                      00110 ;       .line   32; \"leds_c.c\"  leds_reg.entire = port;\n0000   0??? 0???      00111         BANKSEL _leds_reg\n0002   00??           00112         MOVWF   (_leds_reg + 0)\n0003   0??? 0???      00113         BANKSEL _leds_reg\n                      00114         ;\n0005   1D??           00115         BTFSS   _leds_reg,3\n0006   2???           00116         GOTO    LED_YELLOW_DISABLE\n0007   1586           00117         BSF     PORTB,3\n0008   2???           00118         GOTO    NEXT_LED_RED\n0009                  00119 LED_YELLOW_DISABLE:\n0009   1186           00120         BCF     PORTB,3\n000A                  00121 NEXT_LED_RED:\n                      00122         ;\n000A   1E??           00123         BTFSS   _leds_reg,4\n000B   2???           00124         GOTO    LED_RED_DISABLE\n000C   1606           00125         BSF     PORTB,4\n000D   2???           00126         GOTO    NEXT_LED_GREEN\n000E                  00127 LED_RED_DISABLE:\n000E   1206           00128         BCF     PORTB,4\n000F                  00129 NEXT_LED_GREEN:\n000F   1E??           00130         BTFSS   _leds_reg,5\n0010   2???           00131         GOTO    LED_GREEN_DISABLE\n0011   1686           00132         BSF     PORTB,5\n0012   0008           00133         RETURN\n0013                  00134 LED_GREEN_DISABLE:\n0013   1286           00135         BCF     PORTB,5\n0014   0008           00136         RETURN\n                      00137         \n                      00138 ;       .line   59; \"leds_c.c\"  }\n0015   0008           00139         RETURN  \n                      00140 ; exit point of _leds\n                      00141 \n                      00142 \n                      00143 ;       code size estimation:\n                      00144 ;           7+    5 =    12 instructions (   34 byte)\n                      00145 \n                      00146         end\n\fgpasm-1.5.0 #1285 (Sep 12 2016)    leds_c.asm   4-11-2020  16:07:11         PAGE  4\n\n\nSYMBOL TABLE\n  LABEL                              TYPE        VALUE         VALUE          VALUE\n                                                 (hex)         (dec)          (text)\n\nADDEN                             CONSTANT      00000003              3\nADEN                              CONSTANT      00000003              3\nBRGH                              CONSTANT      00000002              2\nC                                 CONSTANT      00000000              0\nC1INV                             CONSTANT      00000004              4\nC1OUT                             CONSTANT      00000006              6\nC2INV                             CONSTANT      00000005              5\nC2OUT                             CONSTANT      00000007              7\nCCP1CON                           CONSTANT      00000017             23\nCCP1IE                            CONSTANT      00000002              2\nCCP1IF                            CONSTANT      00000002              2\nCCP1M0                            CONSTANT      00000000              0\nCCP1M1                            CONSTANT      00000001              1\nCCP1M2                            CONSTANT      00000002              2\nCCP1M3                            CONSTANT      00000003              3\nCCP1X                             CONSTANT      00000005              5\nCCP1Y                             CONSTANT      00000004              4\nCCPR1                             CONSTANT      00000015             21\nCCPR1H                            CONSTANT      00000016             22\nCCPR1L                            CONSTANT      00000015             21\nCIS                               CONSTANT      00000003              3\nCM0                               CONSTANT      00000000              0\nCM1                               CONSTANT      00000001              1\nCM2                               CONSTANT      00000002              2\nCMCON                             CONSTANT      0000001F             31\nCMIE                              CONSTANT      00000006              6\nCMIF                              CONSTANT      00000006              6\nCREN                              CONSTANT      00000004              4\nCSRC                              CONSTANT      00000007              7\nDATA_CP_OFF                       CONSTANT      00003FFF          16383\nDATA_CP_ON                        CONSTANT      00003EFF          16127\nDC                                CONSTANT      00000001              1\nEEADR                             CONSTANT      0000009B            155\nEECON1                            CONSTANT      0000009C            156\nEECON2                            CONSTANT      0000009D            157\nEEDATA                            CONSTANT      0000009A            154\nEEIE                              CONSTANT      00000007              7\nEEIF                              CONSTANT      00000007              7\nF                                 CONSTANT      00000001              1\nFERR                              CONSTANT      00000002              2\nFSR                               CONSTANT      00000004              4\nGIE                               CONSTANT      00000007              7\nINDF                              CONSTANT      00000000              0\nINTCON                            CONSTANT      0000000B             11\nINTE                              CONSTANT      00000004              4\nINTEDG                            CONSTANT      00000006              6\nINTF                              CONSTANT      00000001              1\nIRP                               CONSTANT      00000007              7\nLED_GREEN_DISABLE                 ADDRESS       00000013             19\nLED_RED_DISABLE                   ADDRESS       0000000E             14\nLED_YELLOW_DISABLE                ADDRESS       00000009              9\nNEXT_LED_GREEN                    ADDRESS       0000000F             15\n\fgpasm-1.5.0 #1285 (Sep 12 2016)    leds_c.asm   4-11-2020  16:07:11         PAGE  5\n\n\nSYMBOL TABLE\n  LABEL                              TYPE        VALUE         VALUE          VALUE\n                                                 (hex)         (dec)          (text)\n\nNEXT_LED_RED                      ADDRESS       0000000A             10\nNOT_BO                            CONSTANT      00000000              0\nNOT_BOD                           CONSTANT      00000000              0\nNOT_BOR                           CONSTANT      00000000              0\nNOT_PD                            CONSTANT      00000003              3\nNOT_POR                           CONSTANT      00000001              1\nNOT_RBPU                          CONSTANT      00000007              7\nNOT_T1SYNC                        CONSTANT      00000002              2\nNOT_TO                            CONSTANT      00000004              4\nOERR                              CONSTANT      00000001              1\nOPTION_REG                        CONSTANT      00000081            129\nOSCF                              CONSTANT      00000003              3\nPCL                               CONSTANT      00000002              2\nPCLATH                            CONSTANT      0000000A             10\nPCON                              CONSTANT      0000008E            142\nPEIE                              CONSTANT      00000006              6\nPIE1                              CONSTANT      0000008C            140\nPIR1                              CONSTANT      0000000C             12\nPORTA                             CONSTANT      00000005              5\nPORTB                             CONSTANT      00000006              6\nPR2                               CONSTANT      00000092            146\nPS0                               CONSTANT      00000000              0\nPS1                               CONSTANT      00000001              1\nPS2                               CONSTANT      00000002              2\nPSA                               CONSTANT      00000003              3\nPSAVE                             EXTERNAL      00000000              0\nRA0                               CONSTANT      00000000              0\nRA1                               CONSTANT      00000001              1\nRA2                               CONSTANT      00000002              2\nRA3                               CONSTANT      00000003              3\nRA4                               CONSTANT      00000004              4\nRA5                               CONSTANT      00000005              5\nRA6                               CONSTANT      00000006              6\nRA7                               CONSTANT      00000007              7\nRB0                               CONSTANT      00000000              0\nRB1                               CONSTANT      00000001              1\nRB2                               CONSTANT      00000002              2\nRB3                               CONSTANT      00000003              3\nRB4                               CONSTANT      00000004              4\nRB5                               CONSTANT      00000005              5\nRB6                               CONSTANT      00000006              6\nRB7                               CONSTANT      00000007              7\nRBIE                              CONSTANT      00000003              3\nRBIF                              CONSTANT      00000000              0\nRCIE                              CONSTANT      00000005              5\nRCIF                              CONSTANT      00000005              5\nRCREG                             CONSTANT      0000001A             26\nRCSTA                             CONSTANT      00000018             24\nRD                                CONSTANT      00000000              0\nRP0                               CONSTANT      00000005              5\nRP1                               CONSTANT      00000006              6\nRX9                               CONSTANT      00000006              6\n\fgpasm-1.5.0 #1285 (Sep 12 2016)    leds_c.asm   4-11-2020  16:07:11         PAGE  6\n\n\nSYMBOL TABLE\n  LABEL                              TYPE        VALUE         VALUE          VALUE\n                                                 (hex)         (dec)          (text)\n\nRX9D                              CONSTANT      00000000              0\nSPBRG                             CONSTANT      00000099            153\nSPEN                              CONSTANT      00000007              7\nSREN                              CONSTANT      00000005              5\nSSAVE                             EXTERNAL      00000000              0\nSTATUS                            CONSTANT      00000003              3\nSTK00                             EXTERNAL      00000000              0\nSTK01                             EXTERNAL      00000000              0\nSTK02                             EXTERNAL      00000000              0\nSTK03                             EXTERNAL      00000000              0\nSTK04                             EXTERNAL      00000000              0\nSTK05                             EXTERNAL      00000000              0\nSTK06                             EXTERNAL      00000000              0\nSTK07                             EXTERNAL      00000000              0\nSTK08                             EXTERNAL      00000000              0\nSTK09                             EXTERNAL      00000000              0\nSTK10                             EXTERNAL      00000000              0\nSTK11                             EXTERNAL      00000000              0\nSTK12                             EXTERNAL      00000000              0\nSYNC                              CONSTANT      00000004              4\nT0CS                              CONSTANT      00000005              5\nT0IE                              CONSTANT      00000005              5\nT0IF                              CONSTANT      00000002              2\nT0SE                              CONSTANT      00000004              4\nT1CKPS0                           CONSTANT      00000004              4\nT1CKPS1                           CONSTANT      00000005              5\nT1CON                             CONSTANT      00000010             16\nT1OSCEN                           CONSTANT      00000003              3\nT2CKPS0                           CONSTANT      00000000              0\nT2CKPS1                           CONSTANT      00000001              1\nT2CON                             CONSTANT      00000012             18\nTMR0                              CONSTANT      00000001              1\nTMR0IE                            CONSTANT      00000005              5\nTMR0IF                            CONSTANT      00000002              2\nTMR1                              CONSTANT      0000000E             14\nTMR1CS                            CONSTANT      00000001              1\nTMR1H                             CONSTANT      0000000F             15\nTMR1IE                            CONSTANT      00000000              0\nTMR1IF                            CONSTANT      00000000              0\nTMR1L                             CONSTANT      0000000E             14\nTMR1ON                            CONSTANT      00000000              0\nTMR2                              CONSTANT      00000011             17\nTMR2IE                            CONSTANT      00000001              1\nTMR2IF                            CONSTANT      00000001              1\nTMR2ON                            CONSTANT      00000002              2\nTOUTPS0                           CONSTANT      00000003              3\nTOUTPS1                           CONSTANT      00000004              4\nTOUTPS2                           CONSTANT      00000005              5\nTOUTPS3                           CONSTANT      00000006              6\nTRISA                             CONSTANT      00000085            133\nTRISA0                            CONSTANT      00000000              0\nTRISA1                            CONSTANT      00000001              1\n\fgpasm-1.5.0 #1285 (Sep 12 2016)    leds_c.asm   4-11-2020  16:07:11         PAGE  7\n\n\nSYMBOL TABLE\n  LABEL                              TYPE        VALUE         VALUE          VALUE\n                                                 (hex)         (dec)          (text)\n\nTRISA2                            CONSTANT      00000002              2\nTRISA3                            CONSTANT      00000003              3\nTRISA4                            CONSTANT      00000004              4\nTRISA5                            CONSTANT      00000005              5\nTRISA6                            CONSTANT      00000006              6\nTRISA7                            CONSTANT      00000007              7\nTRISB                             CONSTANT      00000086            134\nTRISB0                            CONSTANT      00000000              0\nTRISB1                            CONSTANT      00000001              1\nTRISB2                            CONSTANT      00000002              2\nTRISB3                            CONSTANT      00000003              3\nTRISB4                            CONSTANT      00000004              4\nTRISB5                            CONSTANT      00000005              5\nTRISB6                            CONSTANT      00000006              6\nTRISB7                            CONSTANT      00000007              7\nTRMT                              CONSTANT      00000001              1\nTX9                               CONSTANT      00000006              6\nTX9D                              CONSTANT      00000000              0\nTXEN                              CONSTANT      00000005              5\nTXIE                              CONSTANT      00000004              4\nTXIF                              CONSTANT      00000004              4\nTXREG                             CONSTANT      00000019             25\nTXSTA                             CONSTANT      00000098            152\nVR0                               CONSTANT      00000000              0\nVR1                               CONSTANT      00000001              1\nVR2                               CONSTANT      00000002              2\nVR3                               CONSTANT      00000003              3\nVRCON                             CONSTANT      0000009F            159\nVREN                              CONSTANT      00000007              7\nVROE                              CONSTANT      00000006              6\nVRR                               CONSTANT      00000005              5\nW                                 CONSTANT      00000000              0\nWR                                CONSTANT      00000001              1\nWREN                              CONSTANT      00000002              2\nWRERR                             CONSTANT      00000003              3\nWSAVE                             EXTERNAL      00000000              0\nZ                                 CONSTANT      00000002              2\n_BODEN_OFF                        CONSTANT      00003FBF          16319\n_BODEN_ON                         CONSTANT      00003FFF          16383\n_BOREN_OFF                        CONSTANT      00003FBF          16319\n_BOREN_ON                         CONSTANT      00003FFF          16383\n_CONFIG                           CONSTANT      00002007           8199\n_CPD_OFF                          CONSTANT      00003FFF          16383\n_CPD_ON                           CONSTANT      00003EFF          16127\n_CP_OFF                           CONSTANT      00003FFF          16383\n_CP_ON                            CONSTANT      00001FFF           8191\n_DEVID1                           CONSTANT      00002006           8198\n_ER_OSC_CLKOUT                    CONSTANT      00003FFF          16383\n_ER_OSC_NOCLKOUT                  CONSTANT      00003FFE          16382\n_EXTCLK_OSC                       CONSTANT      00003FEF          16367\n_FOSC_ECIO                        CONSTANT      00003FEF          16367\n_FOSC_EXTRCCLK                    CONSTANT      00003FFF          16383\n\fgpasm-1.5.0 #1285 (Sep 12 2016)    leds_c.asm   4-11-2020  16:07:11         PAGE  8\n\n\nSYMBOL TABLE\n  LABEL                              TYPE        VALUE         VALUE          VALUE\n                                                 (hex)         (dec)          (text)\n\n_FOSC_EXTRCIO                     CONSTANT      00003FFE          16382\n_FOSC_HS                          CONSTANT      00003FEE          16366\n_FOSC_INTOSCCLK                   CONSTANT      00003FFD          16381\n_FOSC_INTOSCIO                    CONSTANT      00003FFC          16380\n_FOSC_LP                          CONSTANT      00003FEC          16364\n_FOSC_XT                          CONSTANT      00003FED          16365\n_HS_OSC                           CONSTANT      00003FEE          16366\n_IDLOC0                           CONSTANT      00002000           8192\n_IDLOC1                           CONSTANT      00002001           8193\n_IDLOC2                           CONSTANT      00002002           8194\n_IDLOC3                           CONSTANT      00002003           8195\n_INTOSC_OSC_CLKOUT                CONSTANT      00003FFD          16381\n_INTOSC_OSC_NOCLKOUT              CONSTANT      00003FFC          16380\n_INTRC_OSC_CLKOUT                 CONSTANT      00003FFD          16381\n_INTRC_OSC_NOCLKOUT               CONSTANT      00003FFC          16380\n_LP_OSC                           CONSTANT      00003FEC          16364\n_LVP_OFF                          CONSTANT      00003F7F          16255\n_LVP_ON                           CONSTANT      00003FFF          16383\n_MCLRE_OFF                        CONSTANT      00003FDF          16351\n_MCLRE_ON                         CONSTANT      00003FFF          16383\n_PWRTE_OFF                        CONSTANT      00003FFF          16383\n_PWRTE_ON                         CONSTANT      00003FF7          16375\n_RC_OSC_CLKOUT                    CONSTANT      00003FFF          16383\n_RC_OSC_NOCLKOUT                  CONSTANT      00003FFE          16382\n_WDTE_OFF                         CONSTANT      00003FFB          16379\n_WDTE_ON                          CONSTANT      00003FFF          16383\n_WDT_OFF                          CONSTANT      00003FFB          16379\n_WDT_ON                           CONSTANT      00003FFF          16383\n_XT_OSC                           CONSTANT      00003FED          16365\n__14_BIT                          CONSTANT      00000001              1\n__16F628A                         CONSTANT      00000001              1\n__ACTIVE_BANK_ADDR                VARIABLE      FFFFFFFF             -1\n__ACTIVE_PAGE_ADDR                VARIABLE      FFFFFFFF             -1\n__ASSUMED_BANK_ADDR               VARIABLE      FFFFFFFF             -1\n__BANK_0                          CONSTANT      00000000              0\n__BANK_1                          CONSTANT      00000080            128\n__BANK_2                          CONSTANT      00000100            256\n__BANK_3                          CONSTANT      00000180            384\n__BANK_BITS                       CONSTANT      00000180            384\n__BANK_FIRST                      CONSTANT      00000000              0\n__BANK_INV                        CONSTANT      FFFFFFFF             -1\n__BANK_LAST                       CONSTANT      00000180            384\n__BANK_MASK                       CONSTANT      0000007F            127\n__BANK_SHIFT                      CONSTANT      00000007              7\n__BANK_SIZE                       CONSTANT      00000080            128\n__CODE_END                        CONSTANT      000007FF           2047\n__CODE_START                      CONSTANT      00000000              0\n__COMMON_RAM_END                  CONSTANT      0000007F            127\n__COMMON_RAM_START                CONSTANT      00000070            112\n__CONFIG_END                      CONSTANT      00002007           8199\n__CONFIG_START                    CONSTANT      00002007           8199\n__EEPROM_END                      CONSTANT      0000217F           8575\n\fgpasm-1.5.0 #1285 (Sep 12 2016)    leds_c.asm   4-11-2020  16:07:11         PAGE  9\n\n\nSYMBOL TABLE\n  LABEL                              TYPE        VALUE         VALUE          VALUE\n                                                 (hex)         (dec)          (text)\n\n__EEPROM_START                    CONSTANT      00002100           8448\n__GPUTILS_SVN_VERSION             CONSTANT      00000505           1285\n__GPUTILS_VERSION_MAJOR           CONSTANT      00000001              1\n__GPUTILS_VERSION_MICRO           CONSTANT      00000000              0\n__GPUTILS_VERSION_MINOR           CONSTANT      00000005              5\n__IDLOCS_END                      CONSTANT      00002003           8195\n__IDLOCS_START                    CONSTANT      00002000           8192\n__NUM_BANKS                       CONSTANT      00000004              4\n__NUM_PAGES                       CONSTANT      00000001              1\n__PAGE_0                          CONSTANT      00000000              0\n__PAGE_BITS                       CONSTANT      00001800           6144\n__PAGE_FIRST                      CONSTANT      00000000              0\n__PAGE_INV                        CONSTANT      FFFFFFFF             -1\n__PAGE_LAST                       CONSTANT      00000000              0\n__PAGE_MASK                       CONSTANT      000007FF           2047\n__PAGE_SHIFT                      CONSTANT      0000000B             11\n__PAGE_SIZE                       CONSTANT      00000800           2048\n__VECTOR_INT                      CONSTANT      00000004              4\n__VECTOR_RESET                    CONSTANT      00000000              0\n__WHILE_LOOP_COUNT_MAX            CONSTANT      000000FF            255\n_leds                             GLOBAL        00000000              0\n_leds_end                         EXTERNAL      00000000              0\n_leds_over                        GLOBAL        00000000              0\n_leds_reg                         EXTERNAL      00000000              0\n_leds_set_end                     GLOBAL        00000000              0\n\nErrors   :     0\nWarnings :     0 reported,     0 suppressed\nMessages :     2 reported,     0 suppressed\n\n\f",
+			"file": "leds_c.lst",
+			"file_size": 31953,
+			"file_write_time": 132310876313117555,
+			"settings":
+			{
+				"buffer_size": 31445,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "leds.lst",
+			"settings":
+			{
+				"buffer_size": 25549,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "FLCQ.lst",
+			"settings":
+			{
+				"buffer_size": 113847,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
 			}
@@ -75,13 +130,11 @@
 			}
 		},
 		{
-			"contents": "list P=16F628A\n#include <P16F628A.inc>      ; processor specific definitions\n#include <timer0.inc>\n          code\n          global _SetPrescaler\n          global _PrescalerOff\n_SetPrescaler:                          ; copy W into OPTION register, avoid watchdog trouble\n          ;clrwdt                       ; recommended by Microchip (\"switching prescaler assignment\") \n          errorlevel -302              ; Turn off banking message for the next few instructions..\n          bsf   STATUS, RP0            ;! setting RP0 enables access to OPTION reg\n                                       ; option register is in bank1. i know. thanks for the warning.\n          movwf OPTION_REG             ;! ex: \"option\" command (yucc)\n          bcf   STATUS, RP0            ;! clearing RP0 for normal register access\n          errorlevel +302              ; Enable banking message again\n          retlw 0\n\n\n_PrescalerOff:                          ; turn the prescaler for TMR0 \"off\" \n                                       ; (actually done by assigning the prescaler to the watchdog timer)\n          ;clrwdt                       ; clear watchdog timer\n          clrf  TMR0                   ; clear timer 0 AND PRESCALER(!)\n          errorlevel -302              ; Turn off banking message for the next few instructions..\n          bsf   STATUS, RP0            ;! setting RP0 enables access to OPTION reg\n                                       ; option register is in bank1. i know. thanks for the warning.\n          movlw b'00100111'            ;! recommended by Microchip when\n                                       ;! changing prescaler assignment from TMR0 to WDT\n          movwf OPTION_REG             ;! ex: \"option\" command (yucc)\n          clrwdt                       ;! clear watchdog again\n          movlw b'00101111'            ;! bit 3 set means PS assigned to WDT now\n          movwf OPTION_REG             ;! ex: \"option\" command (yucc)\n          bcf   STATUS, RP0            ;! clearing RP0 for normal register access\n          errorlevel +302              ; Enable banking message again\n          retlw 0\n          end",
 			"file": "timer0.asm",
-			"file_size": 2160,
-			"file_write_time": 132308066368243786,
 			"settings":
 			{
-				"buffer_size": 2127,
+				"buffer_size": 3842,
+				"encoding": "UTF-8",
 				"line_ending": "Windows",
 				"name": ";-------------------------------------------------"
 			}
@@ -106,37 +159,39 @@
 			}
 		},
 		{
-			"file": ".clang-format",
-			"settings":
-			{
-				"buffer_size": 480,
-				"encoding": "UTF-8",
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "FLCQ.sublime-workspace",
-			"settings":
-			{
-				"buffer_size": 19579,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "counter-0.4.asm",
-			"settings":
-			{
-				"buffer_size": 115691,
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "Makefile",
 			"settings":
 			{
-				"buffer_size": 862,
+				"buffer_size": 895,
 				"encoding": "UTF-8",
 				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "digitaltemperaturesensor.asm",
+			"settings":
+			{
+				"buffer_size": 35154,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "DS18B20.asm",
+			"settings":
+			{
+				"buffer_size": 1749,
+				"encoding": "UTF-8",
+				"line_ending": "Windows",
+				"name": "list P=16F628A"
+			}
+		},
+		{
+			"file": "FLCQ.cof",
+			"settings":
+			{
+				"buffer_size": 90925,
+				"encoding": "Hexadecimal",
+				"line_ending": "Unix"
 			}
 		}
 	],
@@ -520,6 +575,12 @@
 	],
 	"file_history":
 	[
+		"/C/Users/vkuzmenko/FLCQ/leds_c.asm",
+		"/C/Users/vkuzmenko/FLCQ/counter-0.4.asm",
+		"/C/Users/vkuzmenko/FLCQ/.clang-format",
+		"/C/Users/vkuzmenko/FLCQ/leds_c.c",
+		"/C/Users/vkuzmenko/FLCQ/main.asm",
+		"/C/Users/vkuzmenko/FLCQ/FLCQ.sublime-workspace",
 		"/C/Users/vkuzmenko/AppData/Roaming/Sublime Text 3/Packages/Clang Format/Default (Windows).sublime-keymap",
 		"/C/Users/vkuzmenko/AppData/Roaming/Sublime Text 3/Packages/User/Default (Windows).sublime-keymap",
 		"/C/Users/vkuzmenko/AppData/Roaming/Sublime Text 3/Packages/User/clang_format.sublime-settings",
@@ -529,9 +590,7 @@
 		"/C/Users/vkuzmenko/FLCQ/eeprom.lst",
 		"/C/Users/vkuzmenko/FLCQ/.cod",
 		"/C/Users/vkuzmenko/FLCQ/.cof",
-		"/C/Users/vkuzmenko/FLCQ/FLCQ.sublime-workspace",
 		"/C/Users/vkuzmenko/FLCQ/Makefile",
-		"/C/Users/vkuzmenko/FLCQ/counter-0.4.asm",
 		"/C/Users/vkuzmenko/AppData/Roaming/Sublime Text 3/Packages/User/SublimeGDB.sublime-settings",
 		"/C/Users/vkuzmenko/AppData/Roaming/Sublime Text 3/Packages/SublimeGDB/SublimeGDB.sublime-settings",
 		"/C/Users/vkuzmenko/AppData/Roaming/Sublime Text 3/Packages/Log Highlight/README.md",
@@ -571,11 +630,11 @@
 	],
 	"find":
 	{
-		"height": 24.0
+		"height": 28.0
 	},
 	"find_in_files":
 	{
-		"height": 0.0,
+		"height": 101.0,
 		"where_history":
 		[
 		]
@@ -585,6 +644,34 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"DELAY",
+			"_leds",
+			"_leds_over",
+			"_leds",
+			"leds_over",
+			"_leds_set_end",
+			"leds_ove",
+			"_leds",
+			"0x6e",
+			"leds_set_end",
+			"LEDS_end",
+			"leds_se",
+			"UD_main_0",
+			"_timer0_overflows",
+			"_timer0_prescaler",
+			"_leds_end",
+			"_leds",
+			"timer0_overflows",
+			"LEDS_PORT",
+			"RB",
+			"BSF ",
+			"leds",
+			"LEDS",
+			"leds",
+			"freq_mh",
+			"_b",
+			"leds",
+			"_option_reg",
 			"led_blue_enable",
 			"timer0",
 			"_freq_mesure",
@@ -615,7 +702,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 13,
 			"sheets":
 			[
 				{
@@ -624,15 +711,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 9881,
+						"buffer_size": 8180,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1512,
-								1512
+								1268,
+								1268
 							]
 						],
 						"settings":
@@ -642,27 +729,27 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1365.0,
+						"translation.y": 741.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "main.asm",
+					"file": "FLCQ.sublime-workspace",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 40071,
+						"buffer_size": 20966,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								20448,
-								20460
+								0,
+								0
 							]
 						],
 						"settings":
@@ -671,27 +758,145 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 6.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 13,
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "eeprom.asm",
+					"file": "main.asm",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 551,
+						"buffer_size": 29911,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								199,
-								180
+								11122,
+								11118
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 12,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "timer0.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3842,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3842,
+								3842
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1197.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 14,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "leds.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1154,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								179,
+								274
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "leds_c.lst",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 31445,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								7682,
+								7701
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2622.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "leds.lst",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 25549,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
 							]
 						],
 						"settings":
@@ -704,24 +909,84 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 10,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
-					"file": "timer0.asm",
+					"buffer": 7,
+					"file": "FLCQ.lst",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2127,
+						"buffer_size": 113847,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								899,
-								899
+								113847,
+								113847
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_size": 6,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 36153.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "eeprom.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 551,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								76,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "timer0.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3842,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								98,
+								0
 							]
 						],
 						"settings":
@@ -735,11 +1000,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 7,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 10,
 					"file": "timer0.inc",
 					"semi_transient": false,
 					"settings":
@@ -764,11 +1029,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 4,
+					"stack_index": 6,
 					"type": "text"
 				},
 				{
-					"buffer": 5,
+					"buffer": 11,
 					"file": "FLCQ.sublime-project",
 					"semi_transient": false,
 					"settings":
@@ -794,111 +1059,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 15,
 					"type": "text"
 				},
 				{
-					"buffer": 6,
-					"file": ".clang-format",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 480,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								480,
-								480
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 6,
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "FLCQ.sublime-workspace",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 19579,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 3817.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 7,
-					"type": "text"
-				},
-				{
-					"buffer": 8,
-					"file": "counter-0.4.asm",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 115691,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								83870,
-								84483
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 28746.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 9,
-					"type": "text"
-				},
-				{
-					"buffer": 9,
+					"buffer": 12,
 					"file": "Makefile",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 862,
+						"buffer_size": 895,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								862,
-								862
+								128,
+								128
 							]
 						],
 						"settings":
@@ -911,17 +1089,104 @@
 					},
 					"stack_index": 8,
 					"type": "text"
+				},
+				{
+					"buffer": 13,
+					"file": "digitaltemperaturesensor.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 35154,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								17454,
+								17454
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 4845.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 14,
+					"file": "DS18B20.asm",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1749,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1095,
+								1095
+							]
+						],
+						"settings":
+						{
+							"auto_name": "list P=16F628A",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 15,
+					"file": "FLCQ.cof",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 90925,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
 				}
 			]
 		}
 	],
 	"incremental_find":
 	{
-		"height": 24.0
+		"height": 28.0
 	},
 	"input":
 	{
-		"height": 39.0
+		"height": 40.0
 	},
 	"layout":
 	{
@@ -948,7 +1213,7 @@
 	"menu_visible": true,
 	"output.exec":
 	{
-		"height": 146.0
+		"height": 188.0
 	},
 	"output.find_results":
 	{
@@ -962,7 +1227,7 @@
 	"project": "FLCQ.sublime-project",
 	"replace":
 	{
-		"height": 44.0
+		"height": 52.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -1000,7 +1265,7 @@
 	"show_open_files": true,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 372.0,
+	"side_bar_width": 303.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{
