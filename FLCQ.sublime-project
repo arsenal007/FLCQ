@@ -1,42 +1,56 @@
 {
-  "build_systems": [
-    {
-      "file_regex": "^(...*?):([0-9]*):?([0-9]*)",
-      "name": "MAKEFILES",
-      "path": "C:\\msys64\\mingw64\\bin;C:\\msys64\\usr\\bin;C:\\Program Files (x86)\\gputils\\bin",
-      "shell": true,
-      "variants": [
-        {
-          "cmd": [
-            "make"
-          ],
-          "name": "make"
-        },
-        {
-          "cmd": [
-            "make",
-            "clean"
-          ],
-          "name": "clean"
-        }
-      ],
-      "working_dir": "$project_path"
-    }
-  ],
-  "folders": [
-    {
-      "folder_exclude_patterns": [
-        ".git"
-      ],
-      "path": "."
-    }
-  ],
-  "settings": {
-    "ClangFormat": {
-      "format_on_save": true,
-      "path": "C:\\LLVM\\bin",
-      "style": "File"
-    },
-    "syntax": "C"
-  }
+	"build_systems":
+	[
+		{
+			"file_regex": "^(...*?):([0-9]*):?([0-9]*)",
+			"name": "MAKEFILES",
+			"path": "C:\\msys64\\mingw64\\bin;C:\\msys64\\usr\\bin;C:\\Program Files (x86)\\gputils\\bin",
+			"shell": true,
+			"variants":
+			[
+				{
+					"cmd":
+					[
+						"make"
+					],
+					"name": "make"
+				},
+				{
+					"cmd":
+					[
+						"make",
+						"clean"
+					],
+					"name": "clean"
+				}
+			],
+			"working_dir": "$project_path"
+		},
+		{
+			"file_regex": "^[ ]*File \"(...*?)\", line ([0-9]*)",
+			"name": "Anaconda Python Builder",
+			"selector": "source.python",
+			"shell_cmd": "\"c:\\msys64\\mingw64\\bin\\python\" -u \"$file\""
+		}
+	],
+	"folders":
+	[
+		{
+			"folder_exclude_patterns":
+			[
+				".git"
+			],
+			"path": "."
+		}
+	],
+	"settings":
+	{
+		"ClangFormat":
+		{
+			"format_on_save": true,
+			"path": "C:\\LLVM\\bin",
+			"style": "File"
+		},
+		"syntax": "C"
+	}
 }

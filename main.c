@@ -19,6 +19,11 @@ extern void leds( uint8_t );
 extern void leds_set_end( uint8_t );
 extern void leds_over( void );
 
+extern uint8_t temperature[2];
+
+extern void ds18b20_get_temperature(void);
+
+
 #define t RA1          //sensor pin
 #define ti TRISA1 = 1  //sensor is output
 #define to TRISA1 = 0  //sensor is input
@@ -69,7 +74,7 @@ unsigned char reply( void )
   {  //read 8 bits
     to;
     t = 0;
-    delay_us( 2 );
+    //delay_us( 2 );
     ti;
     //__delay_us( 6 );
     if ( t )
@@ -82,7 +87,7 @@ unsigned char reply( void )
   return ret;
 }
 
-void InitUART( void )
+void uart_init( void )
 {
   TRISB2 = 0;  // TX Pin
   TRISB1 = 1;  // RX Pin
@@ -144,7 +149,7 @@ typedef union {
   };
 } FLCQ_STATUS_t;
 
-FLCQ_STATUS_t b;
+extern FLCQ_STATUS_t b;
 
 #define RX_FULL b._RX_FULL_
 #define TIMER1_INTERRUPT b._TIMER0_INTERRUPT_
@@ -328,6 +333,16 @@ void send_eeprom_value_to_host( void )
   answer( 5 );
 }
 
+void send_temperature( void )
+{
+  uart[ 0 ] = 0x0A;
+  uart[ 1 ] = temperature[1];
+  uart[ 2 ] = temperature[0];
+  uart[ 3 ] = 0xFF;
+  uart[ 4 ] = 0xFF;
+  answer( 5 );
+}
+
 void uart_rx_packet( void )
 {
   switch ( uart[ 0 ] )
@@ -358,6 +373,14 @@ void uart_rx_packet( void )
       freq_mesure1();
       break;
     }
+    case (0x09):
+    {
+      leds( uart[ 1 ] );
+      leds_set_end( uart[ 2 ] );
+      ds18b20_get_temperature();
+      send_temperature();
+      leds_over();      
+    }
   }
 
   uint8_t i;
@@ -367,30 +390,8 @@ void uart_rx_packet( void )
   RX_FULL = 0;
 }
 
-void main( void )
-{
-  leds_init();
-  InitUART();  // Initialize UART
-  //initTimer1();
-  //sensor_rst();     //sensor init
-  //cmnd_w( 0xCC );   //skip ROM command
-  //cmnd_w( 0xBE );   //read pad command
-  //tempL = reply();  //LSB of temp
-  //tempH = reply();  //MSB of temp
-  //sensor_rst();
-  //sensor_rst();
-  //cmnd_w( 0xCC );  //skip ROM command
-  //cmnd_w( 0x44 );  //start convertion command
+extern void main_asm(void);
 
-  //SendStringSerially( "FLCQ ver. 1.0\n" );  // Send string on UART
-
-  // Enable Peripheral Interrupts
-  GIE = 1;  // Enable global interrupts
-  PEIE = 1;
-
-  while ( 1 )
-  {
-    if ( RX_FULL ) uart_rx_packet();
-    if ( TIMER1_INTERRUPT ) timer1_int();
+void main(void) {
+    main_asm();
   }
-}
