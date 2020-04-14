@@ -42,9 +42,9 @@ _SetPrescaler:                          ; copy W into OPTION register, avoid wat
 ;          errorlevel -302              ; Turn off banking message for the next few instructions..
 
           BANKSEL OPTION_REG            ;! setting RP0 enables access to OPTION reg
-                                           ; option register is in bank1. i know. thanks for the warning.
-          MOVWF OPTION_REG             ;! ex: "option" command (yucc)
-                                       ;! clearing RP0 for normal register access
+                                        ; option register is in bank1. i know. thanks for the warning.
+          MOVWF OPTION_REG              ;! ex: "option" command (yucc)
+                                        ;! clearing RP0 for normal register access
           RETLW 0
  
  

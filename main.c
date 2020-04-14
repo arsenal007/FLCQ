@@ -296,12 +296,9 @@ void SendStringSerially( const unsigned char* st )
     SendByteSerially( *st++ );
 }
 
-uint8_t eeprom_address;
-uint8_t eeprom_data;
-uint8_t tempL, tempH;
-
-uint8_t read_eeprom( uint8_t address );
-
+extern uint8_t read_eeprom( uint8_t address );
+extern void write_eeprom( void );
+/*
 void write_eeprom( char address, char data )
 {
   EEADR = address;
@@ -316,6 +313,7 @@ void write_eeprom( char address, char data )
   while ( WR )
     ;
 }
+*/
 
 void answer( uint8_t N )
 {
@@ -353,7 +351,7 @@ void uart_rx_packet( void )
       uart[ 1 ] &= 0x7F;  //128 max
       if ( uart_id == 5 )
       {
-        write_eeprom( uart[ 1 ], uart[ 2 ] );
+        write_eeprom();
         send_eeprom_value_to_host();
       }
       break;

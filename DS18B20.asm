@@ -117,10 +117,19 @@ DS18B20_READ_BYTE:                      ; This routine reads a byte of data from
         RETURN                          ;
   
 _ds18b20_init:
-        CLRF    PORTA       ; Initialize PORTA by ;setting;output data latches
-        MOVLW   0x07        ; Turn comparators off and
-        MOVWF   CMCON       ; enable pins for I/O 
-                            ; functions
+                                        ; clear all VARIABLES
+        CLRF    COUNT                   ; clear COUNT 
+        CLRF    _temperature            ; clear _temperature
+        CLRF    _temperature+1          ;
+        CLRF    _delay_counter_0        ; clear _delay_counter_0
+        CLRF    SHIFT                   ; clear SHIFT
+                                        ;
+        CLRF    PORTA                   ; Initialize PORTA by 
+                                        ; setting
+                                        ; output data latches
+        MOVLW   0x07                    ; Turn comparators off and
+        MOVWF   CMCON                   ; enable pins for I/O 
+                                        ; functions
         RETURN   
 
 _ds18b20_get_temperature:
