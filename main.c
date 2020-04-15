@@ -129,10 +129,10 @@ unsigned char ReceiveByteSerially( void )  // Reads a character from the serial 
   return RCREG;
 }
 
-#define UART_PACKET_SIZE 16u
-uint32_t end;
-uint8_t uart[ UART_PACKET_SIZE ];
-uint8_t uart_id;
+#define UART_PACKET_SIZE 8u
+extern uint8_t uart_id;
+extern uint8_t uart[ UART_PACKET_SIZE ];
+
 
 typedef union {
   uint8_t entire;
@@ -271,7 +271,7 @@ void isr( void ) __interrupt 0
     {
       uart[ uart_id ] = ReceiveByteSerially();
       uart_id++;
-      uart_id &= 0b00001111;
+      uart_id &= 0b00000111;
       if ( ( 4 <= uart_id ) && ( uart[ uart_id - 1 ] == 0xFF ) && ( uart[ uart_id - 2 ] == 0xFF ) ) RX_FULL = 1;
     }
   }
@@ -296,24 +296,8 @@ void SendStringSerially( const unsigned char* st )
     SendByteSerially( *st++ );
 }
 
-extern uint8_t read_eeprom( uint8_t address );
-extern void write_eeprom( void );
-/*
-void write_eeprom( char address, char data )
-{
-  EEADR = address;
-  EEDATA = data;
-  WREN = 1;
-  GIE = 0;
-  EECON2 = 0x55;
-  EECON2 = 0xAA;
-  WR = 1;
-  GIE = 1;
-  WREN = 0;
-  while ( WR )
-    ;
-}
-*/
+extern uint8_t eeprom_read( uint8_t address );
+extern void eeprom_write( void );
 
 void answer( uint8_t N )
 {
@@ -325,7 +309,7 @@ void answer( uint8_t N )
 void send_eeprom_value_to_host( void )
 {
   uart[ 0 ] = 0x04;
-  uart[ 2 ] = read_eeprom( uart[ 1 ] );
+  uart[ 2 ] = eeprom_read( uart[ 1 ] );
   uart[ 3 ] = 0xFF;
   uart[ 4 ] = 0xFF;
   answer( 5 );
@@ -351,7 +335,7 @@ void uart_rx_packet( void )
       uart[ 1 ] &= 0x7F;  //128 max
       if ( uart_id == 5 )
       {
-        write_eeprom();
+        eeprom_write();
         send_eeprom_value_to_host();
       }
       break;
@@ -359,6 +343,7 @@ void uart_rx_packet( void )
     // read eeprom
     case ( 0x05 ):
     {
+      uart[ 1 ] &= 0x7F;  //128 max
       send_eeprom_value_to_host();
       break;
     }

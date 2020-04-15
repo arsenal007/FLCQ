@@ -3,7 +3,7 @@ SDCC_DIR=C:\Program Files\SDCC
 
 PROJECT=FLCQ
 
-OBJECTS=main.o eeprom.o timer0.o leds.o DS18B20.o main_.o
+OBJECTS=main.o eeprom.o timer0.o leds.o DS18B20.o main_.o uart.o
 OUTPUT=${FLCQ}.hex
 PROCESSOR=16f628a
 SCRIPT=16f628a_g.lkr
@@ -26,5 +26,5 @@ $(OUTPUT):	$(OBJECTS) $(SCRIPT)
 	${CC} -mpic14 -p${PROCESSOR} -V -c --use-non-free --opt-code-size --nostdlibcall $<
 
 clean:
-	rm -f ${OBJECTS} main.asm leds_c.asm main.lst leds_c.lst eeprom.lst leds.lst main_.lst DS18B20.lst timer0.lst ${PROJECT}.lst ${PROJECT}.map ${PROJECT}.hex ${PROJECT}.cod ${PROJECT}.cof .cod .cof .hex .lst .map
+	rm -f ${OBJECTS} main.asm leds_c.asm main.lst leds_c.lst eeprom.lst leds.lst main_.lst DS18B20.lst timer0.lst uart.lst ${PROJECT}.lst ${PROJECT}.map ${PROJECT}.hex ${PROJECT}.cod ${PROJECT}.cof .cod .cof .hex .lst .map
 
