@@ -30,5 +30,5 @@ MAIN_LOOP:
               BTFSC _b, TIMER1_INTERRUPT
               CALL  _timer1_int
               GOTO MAIN_LOOP
-              RETURN              
+              RETURN    
               END

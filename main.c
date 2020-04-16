@@ -272,7 +272,7 @@ void isr( void ) __interrupt 0
       uart[ uart_id ] = ReceiveByteSerially();
       uart_id++;
       uart_id &= 0b00000111;
-      if ( ( 4 <= uart_id ) && ( uart[ uart_id - 1 ] == 0xFF ) && ( uart[ uart_id - 2 ] == 0xFF ) ) RX_FULL = 1;
+      if ( ( 3 < uart_id ) && ( uart[ uart_id - 1 ] == 0xFF ) && ( uart[ uart_id - 2 ] == 0xFF ) ) RX_FULL = 1;
     }
   }
   else if ( TMR0IF )
