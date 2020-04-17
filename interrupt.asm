@@ -2,10 +2,13 @@ list P=16F628A
 #include <P16F628A.inc>      ; processor specific definitions
 
 
-UD_INTERRUPT_0   udata  0x57
+UD_INTERRUPT_0   udata  0x56
+packet           res 1
+
+UD_INTERRUPT_1   udata  0x57
 uart_address     res 1
 
-UD_INTERRUPT_1   udata  0x58
+UD_INTERRUPT_2   udata  0x58
 uart_byte        res 1
 
 
@@ -38,21 +41,42 @@ FSR_SAVE    res 1
               BTFSC   _b, RX_FULL
               GOTO    EXIT
               MOVWF   uart_byte
-		      MOVF    _uart_id, W
-       		  ADDLW   _uart
+              ;;unsigned compare: left < lit(0x4=4), size=1
+;      .line  275; "main.c" if ( ( 4 <= uart_id ) && ( uart[ uart_id - 1 ] == 0xFF ) && ( uart[ uart_id - 2 ] == 0xFF ) ) RX_FULL = 1;
+              MOVLW   0x03
+              SUBWF   _uart_id,W         ; test if uart packets size is bigger or equeal to 3
+;             BTFSS   STATUS, C
+              RLF     packet, F
+              MOVWF   uart_byte
+              XORLW   0xff
+;             BCF     STATUS, C 
+              BTFSS   STATUS, Z
+              BSF     STATUS, C
+              RLF     packet, F
+              MOVF    packet, W
+              ANDLW   0x07
+              MOVWF   packet
+              SUBLW   0x07
+              BSF     _b, RX_FULL
+              BTFSC   STATUS, Z           ; Three of low sagnificant bit are in packet set?
+              GOTO    EXIT                ; if so -> go to exit
+                                          ;
+              BCF     _b, RX_FULL         ; clear RX_FULL FLAG, means that not all symbols in packet are received 
+              MOVF    _uart_id, W         ; W = uart_id
+              ADDLW   _uart               ; uart_ptr + uart_id = pointer to actual register in uart array
               MOVWF   FSR
               MOVF    uart_byte, W
               MOVWF   INDF
               INCF    _uart_id, F
               MOVLW   0x07
               ANDWF   _uart_id, F
-;;unsigned compare: left < lit(0x4=4), size=1
-;      .line  275; "main.c" if ( ( 4 <= uart_id ) && ( uart[ uart_id - 1 ] == 0xFF ) && ( uart[ uart_id - 2 ] == 0xFF ) ) RX_FULL = 1;
-       MOVLW  0x04
-       SUBWF  _uart_id,W
-       BTFSS  STATUS,0
-       GOTO   _00239_DS_
+              GOTO    EXIT
+SKIP_UART_RX_EVENT:
+
+
+
 ;;genSkipc:3307: created from rifx:00000000047A5780
+              
        MOVF   _uart_id,W
        BANKSEL       r0x102F
        MOVWF  r0x102F
