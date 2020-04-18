@@ -18,74 +18,18 @@ extern void leds_init( void );
 extern void leds( uint8_t );
 extern void leds_set_end( uint8_t );
 extern void leds_over( void );
-
+extern void main_asm(void);
+extern void SendByteSerially( unsigned char Byte );
+extern uint16_t timer0_overflows;
 extern uint8_t temperature[2];
-
 extern void ds18b20_get_temperature(void);
+extern void frequency_measure_begin( void );
 
 
 #define t RA1          //sensor pin
 #define ti TRISA1 = 1  //sensor is output
 #define to TRISA1 = 0  //sensor is input
 
-void cmnd_w( unsigned char cmnd )
-{  //send command to temperature sensor
-  unsigned char i;
-
-  for ( i = 0; i < 8; i++ )
-  {  //8 bits
-    if ( cmnd & ( 1 << i ) )
-    {
-      to;
-      t = 0;
-      //__delay_us( 2 );
-      ti;
-      //__delay_us( 80 );
-    }
-    else
-    {
-      to;
-      t = 0;
-      //__delay_us( 80 );
-      ti;
-      //__delay_us( 2 );
-    }  //hold output low if bit is low
-  }
-  ti;
-}
-
-unsigned char sensor_rst( void )
-{  //reset the temperature
-
-  to;
-  t = 0;
-  //__delay_us( 600 );
-  ti;
-  //__delay_us( 100 );
-  //__delay_us( 600 );
-  return t;  //return 0 for sensor present
-}
-
-unsigned char reply( void )
-{  //reply from sensor
-  unsigned char ret = 0, i;
-
-  for ( i = 0; i < 8; i++ )
-  {  //read 8 bits
-    to;
-    t = 0;
-    //delay_us( 2 );
-    ti;
-    //__delay_us( 6 );
-    if ( t )
-    {
-      ret += 1 << i;
-    }
-    //__delay_us( 80 );  //output high=bit is high
-  }
-  ti;
-  return ret;
-}
 
 void uart_init( void )
 {
@@ -105,15 +49,15 @@ void uart_init( void )
   TXEN = 1;  // Enable the transmitter
 }
 
-uint16_t timer0_overflows;
-uint8_t timer0_prescaler = 5;
 
-void SendByteSerially( unsigned char Byte )  // Writes a character to the serial port
+extern uint8_t timer0_prescaler;
+
+/*void SendByteSerially( unsigned char Byte )  // Writes a character to the serial port
 {
   while ( !TXIF )
     ;  // wait for previous transmission to finish
   TXREG = Byte;
-}
+}*/
 
 unsigned char ReceiveByteSerially( void )  // Reads a character from the serial port
 {
@@ -161,13 +105,7 @@ extern FLCQ_STATUS_t b;
 void SetPrescaler( uint8_t _option_reg );
 void PrescalerOff( void );
 
-const uint8_t option_reg[ 5 ] = {
-  0b00100000,  // PSC_DIV_BY_2
-  0b00100001,  // PSC_DIV_BY_4
-  0b00100010,  // PSC_DIV_BY_8
-  0b00100011,  // PSC_DIV_BY_16
-  0b00100100   // PSC_DIV_BY_32
-};
+extern const uint8_t option_reg[ 5 ];
 
 void freq_mesure_init( void )
 {
@@ -205,11 +143,11 @@ void freq_mesure( void )
   freq_mesure_init();
 }
 
-void freq_mesure1( void )
-{
+
+/*{
   timer0_prescaler = 5;
   freq_mesure();
-}
+}*/
 
 void answer( uint8_t N );
 
@@ -257,7 +195,7 @@ void timer1_int( void )
   TIMER1_INTERRUPT = 0;
 }
 
-//void __interrupt() isr( void )
+/*
 void isr( void ) __interrupt 0
 {
   // If UART Rx Interrupt
@@ -288,13 +226,7 @@ void isr( void ) __interrupt 0
     T0IE = 0;
     TIMER1_INTERRUPT = 1;
   }
-}
-
-void SendStringSerially( const unsigned char* st )
-{
-  while ( *st )
-    SendByteSerially( *st++ );
-}
+}*/
 
 extern uint8_t eeprom_read( uint8_t address );
 extern void eeprom_write( void );
@@ -327,13 +259,14 @@ void send_temperature( void )
 
 void uart_rx_packet( void )
 {
+
   switch ( uart[ 0 ] )
   {
     // write eeprom
     case ( 0x03 ):
     {
       uart[ 1 ] &= 0x7F;  //128 max
-      if ( uart_id == 5 )
+      if ( uart_id == 4 )
       {
         eeprom_write();
         send_eeprom_value_to_host();
@@ -343,6 +276,7 @@ void uart_rx_packet( void )
     // read eeprom
     case ( 0x05 ):
     {
+
       uart[ 1 ] &= 0x7F;  //128 max
       send_eeprom_value_to_host();
       break;
@@ -353,7 +287,7 @@ void uart_rx_packet( void )
       leds_set_end( uart[ 2 ] );
       uart[ 3 ]--;
       serie_counter = uart[ 3 ];
-      freq_mesure1();
+      frequency_measure_begin();
       break;
     }
     case (0x09):
@@ -363,6 +297,7 @@ void uart_rx_packet( void )
       ds18b20_get_temperature();
       send_temperature();
       leds_over();      
+      break;
     }
   }
 
@@ -372,9 +307,3 @@ void uart_rx_packet( void )
   uart_id = 0;
   RX_FULL = 0;
 }
-
-extern void main_asm(void);
-
-void main(void) {
-    main_asm();
-  }
