@@ -9,6 +9,8 @@ list P=16F628A
               extern _ReceiveByteSerially
               extern _freq_mesure
               extern _leds
+              extern _uart_freq
+              extern _isr
               global _SendByteSerially
               global _main
               global _b
@@ -18,6 +20,8 @@ list P=16F628A
               global _frequency_measure_begin
               global _timer0_prescaler
               global _option_reg
+              global _serie_counter
+
               global PSAVE
               global SSAVE
               global WSAVE
@@ -36,29 +40,32 @@ list P=16F628A
               global STK01
               global STK00
 
-UD_MAIN_0           udata  0x52
+UD_MAIN_0           udata  0x49
+_b                  res 2
+
+UD_MAIN_1           udata  0x4B
 _timer0_prescaler   res 1
 
-UD_MAIN_1           udata  0x53
+UD_MAIN_2           udata  0x4C
 _timer0_overflows   res 2
 
-UD_MAIN_2           udata  0x55
+UD_MAIN_3           udata  0x4E
 packet              res 1
 
-UD_MAIN_3           udata  0x56
+UD_MAIN_4           udata  0x4F
 uart_address        res 1
 
-UD_MAIN_4           udata  0x57
+UD_MAIN_5           udata  0x50
 uart_byte           res 1
 
-UD_MAIN_5           udata  0x58
-_b                  res 1
+UD_MAIN_6           udata  0x51
+_serie_counter      res 1
 
-UD_UART_6           udata  0x59
+UD_UART_7           udata  0x52
 _uart_id            res 1
 
-UD_UART_7           udata  0x60
-_uart               res 8
+UD_UART_8           udata  0x53
+_uart               res 16
 
 
 sharebank udata_ovr 0x0070
@@ -90,11 +97,11 @@ c_interrupt   code   0x0004
               GOTO    INTERRUPT_F
               code
 _option_reg
-       retlw 0x20    ; 32
-       retlw 0x21    ; 33
-       retlw 0x22    ; 34
-       retlw 0x23    ; 35
-       retlw 0x24    ; 36
+       retlw 0x20    ; 1:1
+       retlw 0x21    ; 1:2
+       retlw 0x22    ; 1:4
+       retlw 0x23    ; 1:8
+       retlw 0x24    ; 1:16
 __sdcc_gsinit_startup:
               GOTO    _main
 _SendByteSerially:
@@ -179,6 +186,10 @@ INTERRUPT_F:
               MOVWF   PSAVE
               MOVF    FSR,W
               MOVWF   FSAVE
+              
+              call    _isr
+              GOTO    EXIT
+
               BANKSEL PIR1
               BTFSS   PIR1, RCIF
               GOTO    SKIP_UART_RX_EVENT
@@ -214,24 +225,13 @@ INTERRUPT_F:
               MOVF    uart_byte, W
               MOVWF   INDF
               INCF    _uart_id, F
-              MOVLW   0x07
+              MOVLW   0x0F
               ANDWF   _uart_id, F
               GOTO    EXIT
 SKIP_UART_RX_EVENT:
-;_00237_DS_:
-;      .line  278; "main.c" else if ( TMR0IF )
-              BTFSS   INTCON, TMR0IF       ; TIMER 0 interrupt
-              GOTO    LABEL_TIMER1_INTERRUPT
-;             BCF     INTCON, TMR0IF
-;      .line  281; "main.c" timer0_overflows++;
-              INCF    _timer0_overflows, F
-              BTFSC   STATUS, Z
-              INCF   (_timer0_overflows + 1),F
-              GOTO    EXIT
-LABEL_TIMER1_INTERRUPT:
-;      .line  283; "main.c" else if ( TMR1IF )
+
               BTFSS   PIR1, TMR1IF
-              GOTO    EXIT
+              GOTO    LABEL_TIMER0_INTERRUPT
 ;             .line  285; "main.c" TRISA3 = 0;
               BANKSEL TRISA               ; SELECT Bank 1
               BCF     TRISA, RA3          ; switch RA3 to output -> disable count
@@ -244,7 +244,17 @@ LABEL_TIMER1_INTERRUPT:
               BCF     INTCON, T0IE
 ;      .line  289; "main.c" TIMER1_INTERRUPT = 1;
               BSF    _b, TIMER1_INTERRUPT
-;_00239_DS_:
+              GOTO    EXIT
+LABEL_TIMER0_INTERRUPT:
+;      .line  278; "main.c" else if ( TMR0IF )
+              BTFSS   INTCON, TMR0IF       ; TIMER 0 interrupt
+              GOTO    EXIT
+;             BCF     INTCON, TMR0IF
+;      .line  281; "main.c" timer0_overflows++;
+              BANKSEL _timer0_overflows
+              INCF    _timer0_overflows, F
+              BTFSC   STATUS, Z
+              INCF   (_timer0_overflows + 1),F
 EXIT:
               MOVF   FSAVE,W
               MOVWF  FSR

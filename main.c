@@ -11,8 +11,7 @@
 #include <pic16f628a.h>
 #include <stdint.h>
 
-extern uint8_t leds_end;
-extern uint8_t leds_reg;
+
 
 extern void leds_init( void );
 extern void leds( uint8_t );
@@ -20,16 +19,10 @@ extern void leds_set_end( uint8_t );
 extern void leds_over( void );
 extern void main_asm(void);
 extern void SendByteSerially( unsigned char Byte );
-extern uint16_t timer0_overflows;
-extern uint8_t temperature[2];
 extern void ds18b20_get_temperature(void);
 extern void frequency_measure_begin( void );
-
-
-#define t RA1          //sensor pin
-#define ti TRISA1 = 1  //sensor is output
-#define to TRISA1 = 0  //sensor is input
-
+extern uint8_t eeprom_read( uint8_t address );
+extern void eeprom_write( void );
 
 void uart_init( void )
 {
@@ -50,7 +43,7 @@ void uart_init( void )
 }
 
 
-extern uint8_t timer0_prescaler;
+
 
 /*void SendByteSerially( unsigned char Byte )  // Writes a character to the serial port
 {
@@ -73,43 +66,62 @@ unsigned char ReceiveByteSerially( void )  // Reads a character from the serial 
   return RCREG;
 }
 
-#define UART_PACKET_SIZE 8u
-extern uint8_t uart_id;
-extern uint8_t uart[ UART_PACKET_SIZE ];
-
-
 typedef union {
-  uint8_t entire;
+  uint16_t entire;
   struct
   {
     unsigned _RX_FULL_ : 1;           // 0
     unsigned _TIMER0_INTERRUPT_ : 1;  // 1
-    unsigned _SERIE_ : 1;             // 2
+    unsigned _PRESCALER_SET_ : 1;             // 2
     unsigned _LED_YELLOW_ : 1;        // 3
     unsigned _LED_BLUE_ : 1;          // 4
     unsigned _LED_GREEN_ : 1;         // 5
-    unsigned _UNDIFINED1_ : 1;        // 6
-    unsigned _UNDIFINED0_ : 1;        // 7
+    unsigned _HICKUP_FREQUENCY_ : 1;        // 6
+    unsigned _CONTINUE_MODE_ : 1;        // 7
+    unsigned _UNDIFINED2_ : 1;        // 8
+    unsigned _UNDIFINED3_ : 1;        // 9
+    unsigned _UNDIFINED4_ : 1;        // 10
+    unsigned _UNDIFINED5_ : 1;        // 11
+    unsigned _UNDIFINED6_ : 1;        // 12
+    unsigned _UNDIFINED7_ : 1;        // 13
+    unsigned _UNDIFINED8_ : 1;        // 14
+    unsigned _UNDIFINED9_ : 1;        // 15
   };
 } FLCQ_STATUS_t;
 
+
+extern uint8_t leds_end;
+extern uint8_t leds_reg;
+extern uint8_t f_mode;
+extern uint32_t timer0_overflows;
+extern uint8_t temperature[2];
+#define UART_PACKET_SIZE 16u
+extern uint8_t uart_id;
+extern uint8_t uart[ UART_PACKET_SIZE ];
 extern FLCQ_STATUS_t b;
+extern uint8_t serie_counter;
+extern const uint8_t option_reg[ 5 ];
+extern uint8_t timer0_prescaler;
+
 
 #define RX_FULL b._RX_FULL_
 #define TIMER1_INTERRUPT b._TIMER0_INTERRUPT_
 #define LED_GREEN b._LED_GREEN_
 #define LED_BLUE b._LED_BLUE_
 #define LED_YELLOW b._LED_YELLOW_
-#define SERIE b._SERIE_
+#define PRESCALER b._PRESCALER_SET_
+#define HICKUP_FREQUENCY b._HICKUP_FREQUENCY_
+#define CONTINUE_MODE b._CONTINUE_MODE_
+
 
 void SetPrescaler( uint8_t _option_reg );
 void PrescalerOff( void );
 
-extern const uint8_t option_reg[ 5 ];
+
 
 void freq_mesure_init( void )
 {
-  T0SE = 0;  // bit 4 TMR0 Source Edge Select bit 0 = low/high 1 = high/low
+  T0SE = 1;  // bit 4 TMR0 Source Edge Select bit 0 = low/high 1 = high/low
   timer0_overflows = 0;
 
   // Timer1 Registers:
@@ -131,7 +143,7 @@ void freq_mesure_init( void )
   TMR0 = 0;
   T0IE = 1;
 
-  TRISA3 = 1;  // TRISA3 = 1 enable it as input
+  TRISA4 = 1;  // TRISA3 = 1 enable it as input
 }
 
 void freq_mesure( void )
@@ -151,27 +163,35 @@ void freq_mesure( void )
 
 void answer( uint8_t N );
 
-uint8_t serie_counter;
-
 void uart_freq( void )
 {
   uart[ 0 ] = 0x06;
   uart[ 1 ] = timer0_prescaler;
   uart[ 2 ] = TMR0;
-  uart[ 3 ] = ( timer0_overflows >> 8 ) & 0xff;
-  uart[ 4 ] = timer0_overflows & 0xff;
-  uart[ 5 ] = 0xFF;
-  uart[ 6 ] = 0xFF;
-  answer( 7 );
-  if ( serie_counter )
-  {
+  uart[ 3 ] = timer0_overflows & 0xff;
+  uart[ 4 ] = ( timer0_overflows >> 8 ) & 0xff;
+  uart[ 5 ] = ( timer0_overflows >> 16 ) & 0xff;
+  uart[ 6 ] = ( timer0_overflows >> 24 ) & 0xff;
+  uart[ 7 ] = 0xFF;
+  uart[ 8 ] = 0xFF;
+  answer( 9 );
+}
+
+void frequency_end( void ) {
+ if (PRESCALER) {
+  PRESCALER = 0;
+  freq_mesure_init();
+ } else {
+  uart_freq();
+
+  if ( serie_counter ) {
     serie_counter--;
     freq_mesure_init();
   }
-  else
-  {
+  else {
     leds_over();
   }
+ }
 }
 
 // calls after interrupt of timer1
@@ -187,19 +207,48 @@ void timer1_int( void )
   // so when our overflow counter is between 1638/2=819...1638
 
   if ( timer0_prescaler == 0 )
-    uart_freq();
+    frequency_end();
   else if ( timer0_overflows < 819 )
     freq_mesure();  // freq_mesure does always prescaler decrement
   else
-    uart_freq();
+    frequency_end();
   TIMER1_INTERRUPT = 0;
 }
 
-/*
-void isr( void ) __interrupt 0
+
+void isr( void ) 
 {
-  // If UART Rx Interrupt
-  if ( RCIF )
+  if ( TMR1IF )
+  {
+    if ( HICKUP_FREQUENCY ) {
+       TRISA4 = 0;
+       TMR1ON = 0;
+       TMR1IF = 0;
+       T0IE = 0;
+       TIMER1_INTERRUPT = 1;
+    } else if ( CONTINUE_MODE ) {
+       if ( PRESCALER ) {
+          TRISA4 = 0;
+          TMR1ON = 0;
+          T0IE = 0;
+          TIMER1_INTERRUPT = 1;
+       } else if ( serie_counter ) {
+          serie_counter--;
+       } else {
+          TRISA4 = 0;
+          TMR1ON = 0;
+          T0IE = 0;
+          TIMER1_INTERRUPT = 1;
+       }
+       TMR1IF = 0;
+    }
+  }
+  else if ( TMR0IF )
+  {
+    TMR0IF = 0;
+    timer0_overflows++;
+  }
+  else if ( RCIF )
   {
     if ( RX_FULL )
     {
@@ -209,27 +258,14 @@ void isr( void ) __interrupt 0
     {
       uart[ uart_id ] = ReceiveByteSerially();
       uart_id++;
-      uart_id &= 0b00000111;
+      uart_id &= 0b00001111;
       if ( ( 3 < uart_id ) && ( uart[ uart_id - 1 ] == 0xFF ) && ( uart[ uart_id - 2 ] == 0xFF ) ) RX_FULL = 1;
     }
   }
-  else if ( TMR0IF )
-  {
-    TMR0IF = 0;
-    timer0_overflows++;
-  }
-  else if ( TMR1IF )
-  {
-    TRISA3 = 0;
-    TMR1ON = 0;  // disable timer
-    TMR1IF = 0;
-    T0IE = 0;
-    TIMER1_INTERRUPT = 1;
-  }
-}*/
 
-extern uint8_t eeprom_read( uint8_t address );
-extern void eeprom_write( void );
+}
+
+
 
 void answer( uint8_t N )
 {
@@ -238,10 +274,11 @@ void answer( uint8_t N )
     SendByteSerially( uart[ i ] );
 }
 
-void send_eeprom_value_to_host( void )
+void send_eeprom_value_to_host( uint8_t a )
 {
   uart[ 0 ] = 0x04;
-  uart[ 2 ] = eeprom_read( uart[ 1 ] );
+  uart[ 1 ] = eeprom_read( a );
+  uart[ 2 ] = a;
   uart[ 3 ] = 0xFF;
   uart[ 4 ] = 0xFF;
   answer( 5 );
@@ -257,6 +294,16 @@ void send_temperature( void )
   answer( 5 );
 }
 
+void frequency_measure( void )  {
+      leds( uart[ 1 ] );
+      leds_set_end( uart[ 2 ] );
+      uart[ 3 ]--;
+      serie_counter = uart[ 3 ];
+      frequency_measure_begin();
+      PRESCALER = 1;
+}
+
+
 void uart_rx_packet( void )
 {
 
@@ -265,11 +312,11 @@ void uart_rx_packet( void )
     // write eeprom
     case ( 0x03 ):
     {
-      uart[ 1 ] &= 0x7F;  //128 max
-      if ( uart_id == 4 )
+      uart[ 2 ] &= 0x7F;  //128 max
+      if ( uart_id == 5 )
       {
         eeprom_write();
-        send_eeprom_value_to_host();
+        send_eeprom_value_to_host(uart[2]);
       }
       break;
     }
@@ -278,16 +325,14 @@ void uart_rx_packet( void )
     {
 
       uart[ 1 ] &= 0x7F;  //128 max
-      send_eeprom_value_to_host();
+      send_eeprom_value_to_host(uart[1]);
       break;
     }
     case ( 0x07 ):
     {
-      leds( uart[ 1 ] );
-      leds_set_end( uart[ 2 ] );
-      uart[ 3 ]--;
-      serie_counter = uart[ 3 ];
-      frequency_measure_begin();
+      CONTINUE_MODE = 0;
+      HICKUP_FREQUENCY = 1;
+      frequency_measure();
       break;
     }
     case (0x09):
@@ -297,6 +342,13 @@ void uart_rx_packet( void )
       ds18b20_get_temperature();
       send_temperature();
       leds_over();      
+      break;
+    }
+    case (0x0B):
+    {
+      CONTINUE_MODE = 1;
+      HICKUP_FREQUENCY = 0;
+      frequency_measure();
       break;
     }
   }

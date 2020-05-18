@@ -16,11 +16,11 @@ _eeprom_read:
 ; _uart+2 has a data to write
 _eeprom_write:
               BANKSEL	  _uart        ; select bank 0
-              MOVF      (_uart+1), W ; set address
+              MOVF      (_uart+2), W ; set address
               BANKSEL   EEADR        ; select Bank 1
               MOVWF	    EEADR
               BANKSEL	  _uart        ; select bank 0
-              MOVF	    (_uart+2), W ; set data byte
+              MOVF	    (_uart+1), W ; set data byte
               BANKSEL   EEDATA       ; select bank 1
               MOVWF	    EEDATA
               BSF       EECON1, WREN ; enable write

@@ -10,11 +10,11 @@ _leds_end      res	1
 UD_LEDS_1      udata  0x6F
 _leds_reg      res	1
 		
-		global _leds
-		global _leds_over
-		global _leds_set_end
-        global _leds_init
-        code
+		       global _leds
+		       global _leds_over
+		       global _leds_set_end
+               global _leds_init
+               code
 _leds_init:
 	BANKSEL	LEDS_IO
 	BCF	LEDS_IO,3     ; configure as output YELLOW
