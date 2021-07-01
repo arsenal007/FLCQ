@@ -18,12 +18,12 @@ _leds_reg      res	1
 _leds_init:
 	BANKSEL	LEDS_IO
 	BCF	LEDS_IO,3     ; configure as output YELLOW
-	BCF	LEDS_IO,4     ; configure as output BLUE
-	BCF	LEDS_IO,5     ; configure as output GREEN
+	BCF	LEDS_IO,4     ; configure as output GREEN
+	BCF	LEDS_IO,5     ; configure as output RED
 	BANKSEL LEDS_PORT
 	BCF	LEDS_PORT,3
 	BCF	LEDS_PORT,4
-	BCF	LEDS_PORT,5		
+	BSF	LEDS_PORT,5		
 	RETURN
 
 _leds_set_end:

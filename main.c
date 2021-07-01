@@ -6,10 +6,13 @@
  */
 
 #define _XTAL_FREQ 20000000
-#define BAUDRATE 57600
+#define BAUDRATE 9600
 
 #include <pic16f628a.h>
 #include <stdint.h>
+
+#define FW_VERSION 1
+#define HW_VERSION 1
 
 
 
@@ -28,18 +31,18 @@ void uart_init( void )
 {
   TRISB2 = 0;  // TX Pin
   TRISB1 = 1;  // RX Pin
-  SPBRG = ( ( _XTAL_FREQ / 16 ) / BAUDRATE ) - 1;
-  BRGH = 1;  // Fast baudrate
-  SYNC = 0;  // Asynchronous
-  SPEN = 1;  // Enable serial port pins
-  CREN = 1;  // Enable reception
-  SREN = 0;  // No effect
-  TXIE = 0;  // Disable tx interrupts
-  RCIE = 1;  // Enable rx interrupts
-  TX9 = 0;   // 8-bit transmission
-  RX9 = 0;   // 8-bit reception
-  TXEN = 0;  // Reset transmitter
-  TXEN = 1;  // Enable the transmitter
+  SPBRG = 32;  // 9600
+  BRGH = 0;    // Fast baudrate
+  SYNC = 0;    // Asynchronous
+  SPEN = 1;    // Enable serial port pins
+  CREN = 1;    // Enable reception
+  SREN = 0;    // No effect
+  TXIE = 0;    // Disable tx interrupts
+  RCIE = 1;    // Enable rx interrupts
+  TX9 = 0;     // 8-bit transmission
+  RX9 = 0;     // 8-bit reception
+  TXEN = 0;    // Reset transmitter
+  TXEN = 1;    // Enable the transmitter
 }
 
 
@@ -114,6 +117,9 @@ extern uint8_t timer0_prescaler;
 #define CONTINUE_MODE b._CONTINUE_MODE_
 
 
+
+
+
 void SetPrescaler( uint8_t _option_reg );
 void PrescalerOff( void );
 
@@ -183,7 +189,6 @@ void frequency_end( void ) {
   freq_mesure_init();
  } else {
   uart_freq();
-
   if ( serie_counter ) {
     serie_counter--;
     freq_mesure_init();
@@ -294,6 +299,16 @@ void send_temperature( void )
   answer( 5 );
 }
 
+void send_fw_version( void )
+{
+  uart[ 0 ] = 0x0E;
+  uart[ 1 ] = FW_VERSION;
+  uart[ 2 ] = HW_VERSION;
+  uart[ 3 ] = 0xFF;
+  uart[ 4 ] = 0xFF;
+  answer( 5 );
+}
+
 void frequency_measure( void )  {
       leds( uart[ 1 ] );
       leds_set_end( uart[ 2 ] );
@@ -350,6 +365,12 @@ void uart_rx_packet( void )
       HICKUP_FREQUENCY = 0;
       frequency_measure();
       break;
+    }
+    case (0x0D):
+    {
+       leds( uart[ 1 ] );
+       send_fw_version();
+       break;
     }
   }
 
